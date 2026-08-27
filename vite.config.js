@@ -15,12 +15,12 @@ export default defineConfig({
     host: '0.0.0.0', // Allow mobile devices on the same local network to access
     proxy: {
       '/api': {
-        target: 'http://localhost:3001',
+        target: 'https://photobooth-five-nu.vercel.app/',
         changeOrigin: true,
         secure: false
       },
       '/uploads': {
-        target: 'http://localhost:3001',
+        target: 'https://photobooth-five-nu.vercel.app/',
         changeOrigin: true,
         secure: false
       }
