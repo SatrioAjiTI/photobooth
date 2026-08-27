@@ -1,0 +1,42 @@
+{
+  "bytedance/seedream-5-lite": {
+    "id": "bytedance/seedream-5-lite",
+    "name": "ByteDance SeaDream 5 Lite",
+    "provider": "ByteDance",
+    "icon": "🌊",
+    "shortName": "SeaDream 5 Lite",
+    "description": "Multi-Modal 2K Image-to-Image Instruction Model, sangat presisi menjaga muka & pose.",
+    "count": 5,
+    "lastUsed": "2026-08-27T03:29:19.723Z"
+  },
+  "google/nano-banana-2-lite": {
+    "id": "google/nano-banana-2-lite",
+    "name": "Google Nano Banana 2 Lite",
+    "provider": "Google",
+    "icon": "🍌",
+    "shortName": "Nano Banana 2",
+    "description": "Ultra-Fast Lightweight Multi-Modal Diffusion Model dengan latensi rendah.",
+    "count": 0,
+    "lastUsed": null
+  },
+  "stability-ai/stable-diffusion-inpainting": {
+    "id": "stability-ai/stable-diffusion-inpainting",
+    "name": "Stability AI SD Inpainting",
+    "provider": "Stability AI",
+    "icon": "🎨",
+    "shortName": "SD Inpainting",
+    "description": "Model inpainting & background replacement dengan kontrol komposisi kuat.",
+    "count": 0,
+    "lastUsed": null
+  },
+  "ideogram-ai/ideogram-v2-turbo": {
+    "id": "ideogram-ai/ideogram-v2-turbo",
+    "name": "Ideogram AI v2 Turbo",
+    "provider": "Ideogram AI",
+    "icon": "⚡",
+    "shortName": "Ideogram v2 Turbo",
+    "description": "State-of-the-art visual generator dengan rendering tekstur & gaya photorealistic.",
+    "count": 0,
+    "lastUsed": null
+  }
+}
