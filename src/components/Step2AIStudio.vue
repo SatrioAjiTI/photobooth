@@ -343,10 +343,11 @@
 <script setup>
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import { 
-  initPromptTemplates,
-  getTemplatesByCategory,
-  getPromptTemplates 
-} from '../services/promptManagerService.js';
+  BACKGROUND_PRESETS, 
+  COSTUME_PRESETS, 
+  OBJECT_PRESETS, 
+  ART_STYLES 
+} from '../data/promptTemplates.js';
 import { replicateService } from '../services/replicateService.js';
 import { getModelById } from '../data/modelsData.js';
 
@@ -370,9 +371,6 @@ const currentModelShort = computed(() => {
   const info = getModelById(m);
   return info.shortName || m;
 });
-
-// Dynamic prompt templates reactive state
-const promptTemplatesData = ref(initPromptTemplates());
 
 // Active Selections & Search (Default UNFILLED / EMPTY)
 const activeCategory = ref('latar');
@@ -404,23 +402,19 @@ function matchQuery(item, q) {
 }
 
 const filteredBackgrounds = computed(() => {
-  const list = promptTemplatesData.value?.latar || getTemplatesByCategory('latar');
-  return list.filter(item => matchQuery(item, presetSearchQuery.value));
+  return BACKGROUND_PRESETS.filter(item => matchQuery(item, presetSearchQuery.value));
 });
 
 const filteredCostumes = computed(() => {
-  const list = promptTemplatesData.value?.kostum || getTemplatesByCategory('kostum');
-  return list.filter(item => matchQuery(item, presetSearchQuery.value));
+  return COSTUME_PRESETS.filter(item => matchQuery(item, presetSearchQuery.value));
 });
 
 const filteredObjects = computed(() => {
-  const list = promptTemplatesData.value?.objek || getTemplatesByCategory('objek');
-  return list.filter(item => matchQuery(item, presetSearchQuery.value));
+  return OBJECT_PRESETS.filter(item => matchQuery(item, presetSearchQuery.value));
 });
 
 const filteredArtStyles = computed(() => {
-  const list = promptTemplatesData.value?.style || getTemplatesByCategory('style');
-  return list.filter(item => matchQuery(item, presetSearchQuery.value));
+  return ART_STYLES.filter(item => matchQuery(item, presetSearchQuery.value));
 });
 
 // AI State
