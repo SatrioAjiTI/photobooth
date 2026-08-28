@@ -7,7 +7,7 @@
           <span class="header-icon">📖</span>
           <div>
             <h3>Buku Tamu & Kuesioner Riset</h3>
-            <p class="modal-sub">Data pengunjung, minat prodi, dan hasil kuesioner kualitas & creative marketing.</p>
+            <p class="modal-sub">Data pengunjung, minat prodi, dan hasil kuesioner kualitas & creative marketing</p>
           </div>
         </div>
         <button class="btn btn-secondary btn-icon btn-sm" @click="$emit('close')">×</button>
