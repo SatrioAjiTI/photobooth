@@ -5,15 +5,24 @@
       :currentStep="currentStep"
       :hasImage="!!originalImage"
       :hasAiImage="!!aiGeneratedImage"
-      @go-step="goToStep"
-      @open-settings="isSettingsOpen = true"
-      @open-guestbook="isGuestbookOpen = true"
+      :isSettingPage="isSettingPage"
+      @go-step="handleNavStep"
+      @open-settings="navigateTo('/setting')"
+      @open-guestbook="navigateTo('/setting')"
+      @go-photobooth="navigateTo('/')"
       @reset-session="handleResetSession"
     />
 
-    <!-- Main Content Stage with Step Transitions -->
+    <!-- Main Content Stage with Step / Page Transitions -->
     <main class="app-main-content">
-      <transition name="step-fade" mode="out-in">
+      <!-- 1. DEDICATED ADMIN & SETTING PAGE (/setting or /settings) -->
+      <AdminSettingView 
+        v-if="isSettingPage" 
+        @go-photobooth="navigateTo('/')"
+      />
+
+      <!-- 2. PHOTOBOOTH 3-STEP FLOW (/) -->
+      <transition v-else name="step-fade" mode="out-in">
         <!-- STEP 1: CAPTURE / UPLOAD -->
         <Step1Capture 
           v-if="currentStep === 1"
@@ -28,7 +37,7 @@
           :originalImage="originalImage"
           :initialAiImage="aiGeneratedImage"
           @ai-completed="onAiCompleted"
-          @open-settings="isSettingsOpen = true"
+          @open-settings="navigateTo('/setting')"
           @go-next="goToStep(3)"
         />
 
@@ -41,7 +50,7 @@
       </transition>
     </main>
 
-    <!-- Modals -->
+    <!-- Optional Quick Modals -->
     <SettingsModal 
       v-if="isSettingsOpen" 
       @close="isSettingsOpen = false" 
@@ -55,21 +64,46 @@
 </template>
 
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref, computed, onMounted } from 'vue';
 import axios from 'axios';
 import Navbar from './components/Navbar.vue';
 import Step1Capture from './components/Step1Capture.vue';
 import Step2AIStudio from './components/Step2AIStudio.vue';
 import Step3Download from './components/Step3Download.vue';
+import AdminSettingView from './components/AdminSettingView.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import GuestbookModal from './components/GuestbookModal.vue';
 
-// App State
+// App & Route State
+const currentPath = ref(window.location.pathname.toLowerCase());
 const currentStep = ref(1);
 const originalImage = ref(null);
 const aiGeneratedImage = ref(null);
 const isSettingsOpen = ref(false);
 const isGuestbookOpen = ref(false);
+
+const isSettingPage = computed(() => {
+  return (
+    currentPath.value === '/setting' ||
+    currentPath.value === '/settings' ||
+    currentPath.value.startsWith('/setting/') ||
+    window.location.hash.toLowerCase().includes('setting')
+  );
+});
+
+// Path Navigation
+function navigateTo(path) {
+  window.history.pushState({}, '', path);
+  currentPath.value = path.toLowerCase();
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
+function handleNavStep(step) {
+  if (isSettingPage.value) {
+    navigateTo('/');
+  }
+  goToStep(step);
+}
 
 // Step Navigation
 function goToStep(step) {
@@ -96,12 +130,22 @@ function handleResetSession() {
     originalImage.value = null;
     aiGeneratedImage.value = null;
     currentStep.value = 1;
+    if (isSettingPage.value) {
+      navigateTo('/');
+    }
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 }
 
-// Check backend status on load
+// Check backend status and listen to route changes
 onMounted(async () => {
+  window.addEventListener('popstate', () => {
+    currentPath.value = window.location.pathname.toLowerCase();
+  });
+  window.addEventListener('hashchange', () => {
+    currentPath.value = window.location.pathname.toLowerCase();
+  });
+
   try {
     const res = await axios.get('/api/info');
     if (res.data?.hasServerToken) {

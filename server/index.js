@@ -336,6 +336,56 @@ app.post('/api/models/reset-stats', (req, res) => {
   }
 });
 
+// ----------------------------------------------------
+// 1.2 MASTER RESET ALL USER DATA ENDPOINT
+// ----------------------------------------------------
+app.post('/api/data/reset-all', (req, res) => {
+  try {
+    // 1. Reset Guests
+    saveGuestsList([]);
+
+    // 2. Reset Questionnaires
+    saveQuestionnairesList([]);
+
+    // 3. Reset Model Usage
+    const resetModels = {};
+    Object.keys(SUPPORTED_MODELS).forEach(k => {
+      resetModels[k] = {
+        ...SUPPORTED_MODELS[k],
+        count: 0,
+        lastUsed: null
+      };
+    });
+    saveModelUsageData(resetModels);
+
+    // 4. Clean uploads folder if possible
+    try {
+      if (fs.existsSync(uploadsDir)) {
+        const files = fs.readdirSync(uploadsDir);
+        for (const file of files) {
+          if (file !== '.gitkeep') {
+            try {
+              fs.unlinkSync(path.join(uploadsDir, file));
+            } catch (e) {}
+          }
+        }
+      }
+    } catch (e) {
+      console.warn('Uploads cleanup notice:', e.message);
+    }
+
+    console.log('🧹 [ADMIN] All user data (guests, questionnaires, model stats, uploads) has been RESET.');
+
+    res.json({
+      success: true,
+      message: 'Seluruh riwayat pengguna, kuesioner riset, dan statistik model berhasil dikosongkan.'
+    });
+  } catch (error) {
+    console.error('Reset all data error:', error);
+    res.status(500).json({ error: 'Gagal mengosongkan data riwayat pengguna.' });
+  }
+});
+
 // Helper: Multi-provider uploader to ensure photo is ALWAYS hosted as public HTTPS URL
 async function uploadToReplicateFiles(imageInput, token) {
   if (!imageInput || typeof imageInput !== 'string') return imageInput;

@@ -11,6 +11,15 @@ export const replicateService = {
     return localStorage.getItem(TOKEN_STORAGE_KEY) || '';
   },
 
+  getApiToken() {
+    return this.getToken();
+  },
+
+  hasValidToken() {
+    const t = this.getToken();
+    return !!(t && t.trim().length > 10);
+  },
+
   // Save API token
   saveToken(token) {
     if (token) {
@@ -18,6 +27,10 @@ export const replicateService = {
     } else {
       localStorage.removeItem(TOKEN_STORAGE_KEY);
     }
+  },
+
+  setApiToken(token) {
+    this.saveToken(token);
   },
 
   // Get selected model (defaults to 'auto' -> least used model)
@@ -28,6 +41,10 @@ export const replicateService = {
   // Save selected model
   saveModel(model) {
     localStorage.setItem(MODEL_STORAGE_KEY, model || AUTO_MODEL_ID);
+  },
+
+  setModel(model) {
+    this.saveModel(model);
   },
 
   // Fetch model usage statistics from backend
@@ -228,3 +245,5 @@ export const replicateService = {
     }
   }
 };
+
+export default replicateService;

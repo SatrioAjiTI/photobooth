@@ -2,7 +2,7 @@
   <header class="app-header no-print">
     <div class="header-container">
       <!-- Brand Logo -->
-      <div class="brand-container" @click="$emit('go-step', 1)">
+      <div class="brand-container" @click="isSettingPage ? $emit('go-photobooth') : $emit('go-step', 1)">
         <div class="logo-icon-box">
           <svg class="logo-svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
             <path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/>
@@ -21,7 +21,7 @@
       </div>
 
       <!-- Desktop Step Navigation Indicators -->
-      <nav class="steps-nav hide-mobile">
+      <nav v-if="!isSettingPage" class="steps-nav hide-mobile">
         <div 
           class="step-item" 
           :class="{ active: currentStep === 1, completed: currentStep > 1 }"
@@ -69,6 +69,13 @@
         </div>
       </nav>
 
+      <!-- If on Setting page, show Photobooth shortcut -->
+      <div v-else class="setting-nav-indicator hide-mobile">
+        <button class="btn btn-secondary btn-sm" @click="$emit('go-photobooth')">
+          📸 ← Kembali ke Photobooth
+        </button>
+      </div>
+
       <!-- Right Header Actions -->
       <div class="header-actions">
         <!-- 🌓 LIGHT / DARK MODE TOGGLE -->
@@ -82,24 +89,22 @@
           <span class="hide-mobile">{{ currentTheme === 'light' ? 'Dark' : 'Light' }}</span>
         </button>
 
-        <!-- Guestbook / Leads Button -->
-        <button class="btn btn-secondary btn-sm" @click="$emit('open-guestbook')" title="Buku Tamu & Kuesioner">
-          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="#f59e0b" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
-            <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"/>
-          </svg>
-          <span class="hide-mobile">Buku Tamu</span>
-        </button>
-
-        <!-- API Settings Button -->
-        <button class="btn btn-secondary btn-sm" @click="$emit('open-settings')" title="Pengaturan Token Replicate API">
+        <!-- Admin Setting & Guestbook Button -->
+        <button 
+          class="btn btn-secondary btn-sm" 
+          :class="{ 'btn-primary active': isSettingPage }"
+          @click="isSettingPage ? $emit('go-photobooth') : $emit('open-settings')" 
+          title="Pengaturan & Buku Tamu (/setting)"
+        >
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
             <circle cx="12" cy="12" r="3"/>
             <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/>
           </svg>
+          <span class="hide-mobile">{{ isSettingPage ? 'Photobooth' : 'Setting & Data' }}</span>
         </button>
 
         <!-- Reset Button -->
-        <button v-if="hasImage" class="btn btn-danger btn-sm" @click="$emit('reset-session')" title="Mulai Sesi Baru">
+        <button v-if="hasImage && !isSettingPage" class="btn btn-danger btn-sm" @click="$emit('reset-session')" title="Mulai Sesi Baru">
           <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
             <path d="M3 12a9 9 0 1 0 9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/>
             <path d="M3 3v5h5"/>
@@ -155,10 +160,14 @@ defineProps({
   hasAiImage: {
     type: Boolean,
     default: false
+  },
+  isSettingPage: {
+    type: Boolean,
+    default: false
   }
 });
 
-defineEmits(['go-step', 'open-settings', 'open-guestbook', 'reset-session']);
+defineEmits(['go-step', 'open-settings', 'open-guestbook', 'go-photobooth', 'reset-session']);
 
 // Theme State (Light vs Dark)
 const currentTheme = ref('light');

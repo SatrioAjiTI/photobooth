@@ -272,15 +272,14 @@
                 </div>
               </div>
 
-              <!-- Komentar & Saran Feedback -->
+              <!-- Komentar & Saran Feedback (Opsional) -->
               <div class="form-group mt-3">
-                <label class="form-label">Komentar & Saran Feedback Tambahan <span class="req">*</span></label>
+                <label class="form-label">Komentar & Saran Feedback Tambahan <span class="opt-label">(Opsional)</span></label>
                 <textarea 
                   v-model="guestForm.feedback" 
                   class="form-textarea" 
-                  placeholder="Ceritakan pengalaman photobooth koran AI Anda atau saran untuk kampus..." 
+                  placeholder="Ceritakan pengalaman photobooth koran AI Anda atau saran untuk kampus (opsional)..." 
                   rows="2"
-                  required
                 ></textarea>
               </div>
 
@@ -575,12 +574,6 @@ async function handleSubmitGuestForm() {
   ) {
     activeFormTab.value = 'kuesioner';
     alert('Mohon jawab seluruh pertanyaan kuesioner riset (nomor 1 sampai 5) terlebih dahulu.');
-    return;
-  }
-
-  if (!guestForm.value.feedback || !guestForm.value.feedback.trim()) {
-    activeFormTab.value = 'kuesioner';
-    alert('Mohon berikan komentar dan saran feedback Anda pada kuesioner.');
     return;
   }
 
