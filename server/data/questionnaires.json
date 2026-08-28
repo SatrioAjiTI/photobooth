@@ -1,1 +1,13 @@
-[]
+[
+  {
+    "id": "resp_1787901912766",
+    "photoId": "photo_1787901912436_8cjix6",
+    "respondentName": "wadwd",
+    "q1_face": 5,
+    "q2_pose": 5,
+    "q3_keyword": 5,
+    "q4_marketing": 5,
+    "q5_brochure_preference": "brosur_fisik",
+    "createdAt": "2026-08-28T07:25:12.766Z"
+  }
+]

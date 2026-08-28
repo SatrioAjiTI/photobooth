@@ -323,26 +323,8 @@
 
           <!-- Main Action Buttons -->
           <div class="action-buttons-stack">
-            <!-- 1. Direct HD Download -->
-            <button class="btn btn-primary btn-lg action-btn" @click="downloadHdPhoto">
-              <div class="action-btn-left">
-                <div class="action-icon-circle">
-                  <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
-                    <polyline points="7 10 12 15 17 10"/>
-                    <line x1="12" y1="15" x2="12" y2="3"/>
-                  </svg>
-                </div>
-                <div class="action-btn-text">
-                  <span class="action-title">Unduh Koran Berita HD</span>
-                  <span class="action-desc">Simpan file gambar kualitas tinggi (.png)</span>
-                </div>
-              </div>
-              <span class="badge badge-emerald">Download</span>
-            </button>
-
-            <!-- 2. QR Code Mobile Download -->
-            <button class="btn btn-secondary btn-lg action-btn" @click="openQrModal">
+            <!-- 1. QR Code Mobile Download (Primary) -->
+            <button class="btn btn-primary btn-lg pulse-glow action-btn" @click="openQrModal">
               <div class="action-btn-left">
                 <div class="action-icon-circle">
                   <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
@@ -354,13 +336,13 @@
                 </div>
                 <div class="action-btn-text">
                   <span class="action-title">Scan QR Code HP</span>
-                  <span class="action-desc">Pindai dengan kamera HP untuk simpan langsung ke galeri</span>
+                  <span class="action-desc">Pindai dengan kamera HP untuk simpan foto langsung ke galeri</span>
                 </div>
               </div>
-              <span class="badge badge-cyan">Scan QR</span>
+              <span class="badge badge-emerald">Scan QR</span>
             </button>
 
-            <!-- 3. Direct Print -->
+            <!-- 2. Direct Print -->
             <button class="btn btn-secondary btn-lg action-btn" @click="triggerDirectPrint">
               <div class="action-btn-left">
                 <div class="action-icon-circle">

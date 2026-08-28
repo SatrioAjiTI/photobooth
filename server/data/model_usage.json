@@ -16,8 +16,8 @@
     "icon": "🍌",
     "shortName": "Nano Banana 2",
     "description": "Ultra-Fast Lightweight Multi-Modal Diffusion Model dengan latensi rendah.",
-    "count": 0,
-    "lastUsed": null
+    "count": 1,
+    "lastUsed": "2026-08-28T07:27:12.026Z"
   },
   "stability-ai/stable-diffusion-inpainting": {
     "id": "stability-ai/stable-diffusion-inpainting",
@@ -36,7 +36,7 @@
     "icon": "⚡",
     "shortName": "Ideogram v2 Turbo",
     "description": "State-of-the-art visual generator dengan rendering tekstur & gaya photorealistic.",
-    "count": 0,
-    "lastUsed": null
+    "count": 1,
+    "lastUsed": "2026-08-28T07:23:34.800Z"
   }
 }

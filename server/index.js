@@ -64,6 +64,7 @@ try {
 const guestsFilePath = path.join(dataDir, 'guests.json');
 const questionnairesFilePath = path.join(dataDir, 'questionnaires.json');
 const modelUsageFilePath = path.join(dataDir, 'model_usage.json');
+const photosFilePath = path.join(dataDir, 'photos.json');
 
 const SUPPORTED_MODELS = {
   'bytedance/seedream-5-lite': {
@@ -112,6 +113,7 @@ const SUPPORTED_MODELS = {
 let memoryGuests = [];
 let memoryQuestionnaires = [];
 let memoryModelUsage = { ...SUPPORTED_MODELS };
+let memoryPhotos = {};
 
 function initDataFile(filePath, bundledRelativePath, defaultVal) {
   try {
@@ -136,6 +138,26 @@ function initDataFile(filePath, bundledRelativePath, defaultVal) {
 memoryGuests = initDataFile(guestsFilePath, 'data/guests.json', []);
 memoryQuestionnaires = initDataFile(questionnairesFilePath, 'data/questionnaires.json', []);
 memoryModelUsage = initDataFile(modelUsageFilePath, 'data/model_usage.json', SUPPORTED_MODELS);
+memoryPhotos = initDataFile(photosFilePath, 'data/photos.json', {});
+
+function getPhotosMap() {
+  try {
+    if (fs.existsSync(photosFilePath)) {
+      memoryPhotos = JSON.parse(fs.readFileSync(photosFilePath, 'utf8'));
+      return memoryPhotos;
+    }
+  } catch (e) {}
+  return memoryPhotos || {};
+}
+
+function savePhotosMap(map) {
+  memoryPhotos = map;
+  try {
+    fs.writeFileSync(photosFilePath, JSON.stringify(map, null, 2));
+  } catch (e) {
+    console.warn('Notice: Using in-memory photo map');
+  }
+}
 
 function getModelUsageData() {
   try {
@@ -658,7 +680,7 @@ app.post('/api/replicate/generate', async (req, res) => {
 // ----------------------------------------------------
 // 3. PHOTO STORAGE & QR CODE MOBILE DOWNLOAD ENDPOINTS
 // ----------------------------------------------------
-app.post('/api/photos/save', (req, res) => {
+app.post('/api/photos/save', async (req, res) => {
   try {
     const { imageBase64, frameType, guestName, prodiId, prodiName } = req.body;
     if (!imageBase64) {
@@ -677,6 +699,35 @@ app.post('/api/photos/save', (req, res) => {
       console.warn('Notice: Failed writing photo to disk:', fsErr.message);
     }
 
+    // Attempt fast CDN upload for direct public URL
+    let cdnUrl = '';
+    try {
+      const formData = new FormData();
+      const blob = new Blob([buffer], { type: 'image/png' });
+      formData.append('file', blob, `${photoId}.png`);
+      const tmpRes = await axios.post('https://tmpfiles.org/api/v1/upload', formData, { timeout: 8000 });
+      const raw = tmpRes.data?.data?.url;
+      if (raw) {
+        cdnUrl = raw.replace('tmpfiles.org/', 'tmpfiles.org/dl/');
+        console.log(`✅ Framed photo hosted on CDN: ${cdnUrl}`);
+      }
+    } catch (cdnErr) {
+      console.warn('CDN photo upload note:', cdnErr.message);
+    }
+
+    // Save in persistent photo record
+    const photos = getPhotosMap();
+    photos[photoId] = {
+      id: photoId,
+      filename,
+      imageBase64: imageBase64.startsWith('data:') ? imageBase64 : `data:image/png;base64,${base64Data}`,
+      cdnUrl,
+      guestName: guestName || 'Pengunjung',
+      prodiId: prodiId || 'informatika',
+      createdAt: new Date().toISOString()
+    };
+    savePhotosMap(photos);
+
     const isVercel = !!process.env.VERCEL;
     let baseUrl;
     if (isVercel || req.headers['x-forwarded-host'] || req.headers.host) {
@@ -689,7 +740,7 @@ app.post('/api/photos/save', (req, res) => {
     }
 
     const downloadUrl = `${baseUrl}/download/${photoId}`;
-    const directImageUrl = `${baseUrl}/uploads/${filename}`;
+    const directImageUrl = cdnUrl || `${baseUrl}/uploads/${filename}`;
 
     res.json({
       success: true,
@@ -712,7 +763,19 @@ app.get('/download/:id', (req, res) => {
   const filename = `${photoId}.png`;
   const filePath = path.join(uploadsDir, filename);
 
-  if (!fs.existsSync(filePath)) {
+  const photos = getPhotosMap();
+  const photoRecord = photos[photoId] || memoryPhotos[photoId];
+
+  let imageUrl = '';
+  if (fs.existsSync(filePath)) {
+    imageUrl = `/uploads/${filename}`;
+  } else if (photoRecord?.cdnUrl) {
+    imageUrl = photoRecord.cdnUrl;
+  } else if (photoRecord?.imageBase64) {
+    imageUrl = photoRecord.imageBase64;
+  }
+
+  if (!imageUrl && !photoRecord) {
     return res.status(404).send(`
       <!DOCTYPE html>
       <html lang="id">
@@ -729,14 +792,16 @@ app.get('/download/:id', (req, res) => {
       <body>
         <div class="card">
           <h2>⚠️ Foto Tidak Ditemukan</h2>
-          <p>Foto mungkin telah dipindahkan atau belum disimpan.</p>
+          <p>Foto mungkin telah dipindahkan atau sesi telah berakhir.</p>
         </div>
       </body>
       </html>
     `);
   }
 
-  const imageUrl = `/uploads/${filename}`;
+  if (!imageUrl && photoRecord) {
+    imageUrl = photoRecord.cdnUrl || photoRecord.imageBase64;
+  }
 
   res.send(`
     <!DOCTYPE html>
@@ -829,7 +894,7 @@ app.get('/download/:id', (req, res) => {
         }
         .photo-tip {
           font-size: 12px;
-          color: #64748b;
+          color: #94a3b8;
           margin-bottom: 24px;
           line-height: 1.4;
         }
@@ -871,12 +936,12 @@ app.get('/download/:id', (req, res) => {
           <img src="${imageUrl}" alt="AI Photobooth Newspaper" id="mainPhoto" />
         </div>
 
-        <a href="${imageUrl}" download="Warta-Kampus-${photoId}.png" class="btn-download">
+        <button onclick="downloadImage()" class="btn-download">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-          Unduh Foto Koran Kualitas Tinggi (.PNG)
-        </a>
+          Unduh Foto Koran (.PNG)
+        </button>
 
-        <p class="photo-tip">💡 <em>Tips iPhone & Android:</em> Anda juga dapat menahan foto (tekan lama) lalu pilih <strong>"Simpan Gambar"</strong> ke galeri ponsel.</p>
+        <p class="photo-tip">💡 <em>Tips iPhone & Android:</em> Anda juga dapat menahan foto (tekan lama) lalu pilih <strong>"Simpan Gambar / Simpan ke Foto"</strong>.</p>
 
         <div class="info-card">
           <h4>✅ Kuesioner Berhasil Direkam</h4>
@@ -887,6 +952,20 @@ app.get('/download/:id', (req, res) => {
           Warta Kampus AI Photobooth Experience • Universitas FTI 2026
         </div>
       </div>
+
+      <script>
+        function downloadImage() {
+          const img = document.getElementById('mainPhoto');
+          const src = img.src;
+          const link = document.createElement('a');
+          link.href = src;
+          link.download = 'Warta-Kampus-${photoId}.png';
+          link.target = '_blank';
+          document.body.appendChild(link);
+          link.click();
+          document.body.removeChild(link);
+        }
+      </script>
     </body>
     </html>
   `);
