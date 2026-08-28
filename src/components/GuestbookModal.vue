@@ -6,7 +6,7 @@
         <div class="modal-header-left">
           <span class="header-icon">📖</span>
           <div>
-            <h3>Buku Tamu & Kuesioner Riset</h3>
+            <h3>Buku Tamu & Kuesioner Riset OTW Prof</h3>
             <p class="modal-sub">Data pengunjung, minat prodi, dan hasil kuesioner kualitas & creative marketing</p>
           </div>
         </div>
