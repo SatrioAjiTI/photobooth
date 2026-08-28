@@ -372,13 +372,13 @@ const currentModelShort = computed(() => {
   return info.shortName || m;
 });
 
-// Active Selections & Search
+// Active Selections & Search (Default UNFILLED / EMPTY)
 const activeCategory = ref('latar');
 const presetSearchQuery = ref('');
-const selectedBackground = ref(BACKGROUND_PRESETS[0]);
-const selectedCostume = ref(COSTUME_PRESETS[0]);
-const selectedObjects = ref([OBJECT_PRESETS[0]]); // Array of up to 5 objects
-const selectedArtStyle = ref(ART_STYLES[0]);
+const selectedBackground = ref(null);
+const selectedCostume = ref(null);
+const selectedObjects = ref([]); // Array of up to 5 objects
+const selectedArtStyle = ref(null);
 const creativityStrength = ref(0.75);
 
 const activeCategoryLabel = computed(() => {
@@ -514,6 +514,16 @@ function buildPromptString() {
 
 // Run AI Generation
 async function runAiGeneration() {
+  if (
+    !selectedBackground.value &&
+    !selectedCostume.value &&
+    selectedObjects.value.length === 0 &&
+    !selectedArtStyle.value
+  ) {
+    alert('Mohon pilih setidaknya 1 template gaya (Latar Belakang, Kostum, Objek, atau Gaya Seni) di sebelah kanan sebelum generate.');
+    return;
+  }
+
   isGenerating.value = true;
   progressPercent.value = 8;
   currentProgressStep.value = '1/4: Menyiapkan dan mengunggah foto ke Neural CDN...';
