@@ -581,7 +581,12 @@ async function handleSubmitGuestForm() {
 
       if (uploadRes.data?.success) {
         photoId = uploadRes.data.photoId || photoId;
-        mobileDownloadUrl.value = uploadRes.data.downloadUrl || directDownloadUrl;
+        const cdn = uploadRes.data.cdnUrl;
+        if (cdn && (cdn.startsWith('http://') || cdn.startsWith('https://'))) {
+          mobileDownloadUrl.value = `${baseUrl}/download/${photoId}?cdn=${encodeURIComponent(cdn)}&name=${encodeURIComponent(guestForm.value.name || '')}`;
+        } else {
+          mobileDownloadUrl.value = uploadRes.data.downloadUrl || directDownloadUrl;
+        }
         savedPhotoId.value = photoId;
       } else {
         mobileDownloadUrl.value = directDownloadUrl;

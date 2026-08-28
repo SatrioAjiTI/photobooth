@@ -103,6 +103,21 @@ async function loadPhotoData() {
     }
   }
 
+  // 1. Check if CDN direct image URL or name is passed via query params
+  const urlParams = new URLSearchParams(window.location.search);
+  const queryImg = urlParams.get('cdn') || urlParams.get('img');
+  const queryName = urlParams.get('name');
+
+  if (queryImg) {
+    photoData.value = {
+      photoId: targetId || 'photo',
+      imageUrl: queryImg,
+      guestName: queryName || 'Sobat Kampus'
+    };
+    isLoading.value = false;
+    return;
+  }
+
   if (!targetId) {
     isLoading.value = false;
     errorMessage.value = 'ID Foto tidak valid.';
@@ -128,16 +143,33 @@ function onImageLoaded() {
   console.log('Mobile framed photo rendered successfully');
 }
 
-function handleDownload() {
+async function handleDownload() {
   if (!photoData.value?.imageUrl) return;
 
-  const link = document.createElement('a');
-  link.href = photoData.value.imageUrl;
-  link.download = `Warta-Kampus-${photoData.value.photoId || 'photo'}.png`;
-  link.target = '_blank';
-  document.body.appendChild(link);
-  link.click();
-  document.body.removeChild(link);
+  try {
+    const imgUrl = photoData.value.imageUrl;
+    // Attempt blob download for native mobile save
+    const res = await fetch(imgUrl, { mode: 'cors' });
+    const blob = await res.blob();
+    const blobUrl = URL.createObjectURL(blob);
+
+    const link = document.createElement('a');
+    link.href = blobUrl;
+    link.download = `Warta-Kampus-${photoData.value.photoId || 'photo'}.png`;
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    setTimeout(() => URL.revokeObjectURL(blobUrl), 3000);
+  } catch (e) {
+    // Direct link fallback
+    const link = document.createElement('a');
+    link.href = photoData.value.imageUrl;
+    link.download = `Warta-Kampus-${photoData.value.photoId || 'photo'}.png`;
+    link.target = '_blank';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  }
 }
 
 onMounted(() => {
