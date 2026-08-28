@@ -194,6 +194,8 @@ function recordModelUsage(modelId) {
 
 function buildReplicateInput(modelId, prompt, uploadedImageUrl, aspect_ratio) {
   const ar = aspect_ratio || '16:9';
+
+  // 1. ByteDance SeaDream 5 Lite (Multi-Modal Image-to-Image Instruction Model)
   if (modelId === 'bytedance/seedream-5-lite') {
     return {
       size: '2K',
@@ -206,34 +208,44 @@ function buildReplicateInput(modelId, prompt, uploadedImageUrl, aspect_ratio) {
       sequential_image_generation: 'disabled'
     };
   }
-  if (modelId === 'google/nano-banana-2-lite') {
+
+  // 2. Google Nano Banana 2 Lite / Gemini Image Family
+  if (modelId.includes('nano-banana')) {
     return {
       prompt: prompt,
       image_input: [uploadedImageUrl],
-      image: uploadedImageUrl,
-      aspect_ratio: ar
+      aspect_ratio: ar,
+      output_format: 'png'
     };
   }
-  if (modelId === 'stability-ai/stable-diffusion-inpainting') {
+
+  // 3. Stability AI (SDXL / SD Inpainting)
+  if (modelId.includes('stable-diffusion') || modelId.includes('sdxl') || modelId.includes('stability')) {
     return {
       prompt: prompt,
       image: uploadedImageUrl,
-      init_image: uploadedImageUrl,
-      mask: uploadedImageUrl
+      prompt_strength: 0.75,
+      guidance_scale: 7.5,
+      num_inference_steps: 30,
+      apply_watermark: false
     };
   }
-  if (modelId === 'ideogram-ai/ideogram-v2-turbo') {
+
+  // 4. Ideogram AI v2 Turbo / v2
+  if (modelId.includes('ideogram')) {
     return {
       prompt: prompt,
-      image: uploadedImageUrl,
-      style_type: 'AUTO',
-      aspect_ratio: ar
+      aspect_ratio: ar,
+      style_type: 'Auto',
+      magic_prompt_option: 'Auto',
+      negative_prompt: 'blurry, distorted face, deformed anatomy, low quality'
     };
   }
+
+  // Default Fallback
   return {
     prompt: prompt,
     image_input: [uploadedImageUrl],
-    image: uploadedImageUrl,
     aspect_ratio: ar
   };
 }
