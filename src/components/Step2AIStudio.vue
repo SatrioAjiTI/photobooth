@@ -109,41 +109,7 @@
           </div>
         </div>
 
-        <!-- Action Buttons Below Preview -->
-        <div class="studio-bottom-actions">
-          <button 
-            v-if="!aiResultImage" 
-            class="btn btn-primary btn-lg pulse-glow generate-action-btn"
-            :disabled="isGenerating"
-            @click="runAiGeneration"
-          >
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-              <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/>
-            </svg>
-            <span>Generate AI Transformation</span>
-          </button>
-
-          <div v-if="aiResultImage && !isGenerating" class="completed-actions-row">
-            <button class="btn btn-secondary btn-lg" @click="runAiGeneration">
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
-              </svg>
-              <span>Re-roll / Coba Lagi</span>
-            </button>
-
-            <button class="btn btn-primary btn-lg pulse-glow" @click="proceedToDownload">
-              <span>Lanjut ke Unduh & Print</span>
-              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
-                <polyline points="9 18 15 12 9 6"/>
-              </svg>
-            </button>
-          </div>
-        </div>
-      </div>
-
-      <!-- RIGHT COLUMN: Prompt Controls & Presets -->
-      <div class="studio-controls-col">
-        <!-- Active Style Summary Box -->
+        <!-- Active Style Summary Box (Directly below photo, above generate button) -->
         <div class="active-selection-box glass-panel">
           <div class="box-header">
             <div class="box-header-left">
@@ -183,11 +149,45 @@
             </span>
 
             <span v-if="!selectedBackground && !selectedCostume && selectedObjects.length === 0 && !selectedArtStyle" class="empty-chips-text">
-              Silakan pilih kombinasi template Latar, Kostum, Objek & Gaya Seni di bawah...
+              Silakan pilih kombinasi template Latar, Kostum, Objek & Gaya Seni di sebelah kanan...
             </span>
           </div>
         </div>
 
+        <!-- Action Buttons Below Preview -->
+        <div class="studio-bottom-actions">
+          <button 
+            v-if="!aiResultImage" 
+            class="btn btn-primary btn-lg pulse-glow generate-action-btn"
+            :disabled="isGenerating"
+            @click="runAiGeneration"
+          >
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+              <path d="m12 3-1.9 5.8a2 2 0 0 1-1.3 1.3L3 12l5.8 1.9a2 2 0 0 1 1.3 1.3L12 21l1.9-5.8a2 2 0 0 1 1.3-1.3L21 12l-5.8-1.9a2 2 0 0 1-1.3-1.3L12 3z"/>
+            </svg>
+            <span>Generate AI Transformation</span>
+          </button>
+
+          <div v-if="aiResultImage && !isGenerating" class="completed-actions-row">
+            <button class="btn btn-secondary btn-lg" @click="runAiGeneration">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                <path d="M21.5 2v6h-6M21.34 15.57a10 10 0 1 1-.57-8.38l5.67-5.67"/>
+              </svg>
+              <span>Re-roll / Coba Lagi</span>
+            </button>
+
+            <button class="btn btn-primary btn-lg pulse-glow" @click="proceedToDownload">
+              <span>Lanjut ke Unduh & Print</span>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <polyline points="9 18 15 12 9 6"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- RIGHT COLUMN: Prompt Controls & Presets -->
+      <div class="studio-controls-col">
         <!-- Category Tabs for Template Selection -->
         <div class="presets-container glass-panel">
           <div class="preset-category-tabs">

@@ -16,8 +16,8 @@
     "icon": "🍌",
     "shortName": "Nano Banana 2",
     "description": "Ultra-Fast Lightweight Multi-Modal Diffusion Model dengan latensi rendah.",
-    "count": 0,
-    "lastUsed": null
+    "count": 1,
+    "lastUsed": "2026-08-28T06:41:44.815Z"
   },
   "stability-ai/stable-diffusion-inpainting": {
     "id": "stability-ai/stable-diffusion-inpainting",

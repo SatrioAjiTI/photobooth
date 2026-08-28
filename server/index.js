@@ -49,22 +49,20 @@ async function fetchWithRetry(requestFn, maxRetries = 3, delayMs = 1500) {
   throw lastError;
 }
 
-// Ensure directories exist
-const dataDir = path.join(__dirname, 'data');
-const uploadsDir = path.join(__dirname, 'uploads');
-if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
-if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+const isVercel = !!process.env.VERCEL;
+const baseDir = isVercel ? '/tmp' : __dirname;
+const dataDir = path.join(baseDir, 'data');
+const uploadsDir = path.join(baseDir, 'uploads');
+
+try {
+  if (!fs.existsSync(dataDir)) fs.mkdirSync(dataDir, { recursive: true });
+  if (!fs.existsSync(uploadsDir)) fs.mkdirSync(uploadsDir, { recursive: true });
+} catch (e) {
+  console.warn('Directory check:', e.message);
+}
 
 const guestsFilePath = path.join(dataDir, 'guests.json');
-if (!fs.existsSync(guestsFilePath)) {
-  fs.writeFileSync(guestsFilePath, JSON.stringify([], null, 2));
-}
-
 const questionnairesFilePath = path.join(dataDir, 'questionnaires.json');
-if (!fs.existsSync(questionnairesFilePath)) {
-  fs.writeFileSync(questionnairesFilePath, JSON.stringify([], null, 2));
-}
-
 const modelUsageFilePath = path.join(dataDir, 'model_usage.json');
 
 const SUPPORTED_MODELS = {
@@ -110,21 +108,52 @@ const SUPPORTED_MODELS = {
   }
 };
 
+// In-memory fallbacks to guarantee 100% uptime on ephemeral serverless platforms
+let memoryGuests = [];
+let memoryQuestionnaires = [];
+let memoryModelUsage = { ...SUPPORTED_MODELS };
+
+function initDataFile(filePath, bundledRelativePath, defaultVal) {
+  try {
+    if (!fs.existsSync(filePath)) {
+      const bundledPath = path.join(__dirname, bundledRelativePath);
+      if (fs.existsSync(bundledPath)) {
+        const content = fs.readFileSync(bundledPath, 'utf8');
+        fs.writeFileSync(filePath, content);
+        return JSON.parse(content);
+      } else {
+        fs.writeFileSync(filePath, JSON.stringify(defaultVal, null, 2));
+        return defaultVal;
+      }
+    } else {
+      return JSON.parse(fs.readFileSync(filePath, 'utf8'));
+    }
+  } catch (e) {
+    return defaultVal;
+  }
+}
+
+memoryGuests = initDataFile(guestsFilePath, 'data/guests.json', []);
+memoryQuestionnaires = initDataFile(questionnairesFilePath, 'data/questionnaires.json', []);
+memoryModelUsage = initDataFile(modelUsageFilePath, 'data/model_usage.json', SUPPORTED_MODELS);
+
 function getModelUsageData() {
   try {
     if (fs.existsSync(modelUsageFilePath)) {
       const parsed = JSON.parse(fs.readFileSync(modelUsageFilePath, 'utf8'));
-      return { ...SUPPORTED_MODELS, ...parsed };
+      memoryModelUsage = { ...SUPPORTED_MODELS, ...parsed };
+      return memoryModelUsage;
     }
   } catch (e) {}
-  return { ...SUPPORTED_MODELS };
+  return memoryModelUsage || { ...SUPPORTED_MODELS };
 }
 
 function saveModelUsageData(data) {
+  memoryModelUsage = data;
   try {
     fs.writeFileSync(modelUsageFilePath, JSON.stringify(data, null, 2));
   } catch (e) {
-    console.error('Failed to save model usage data:', e);
+    console.warn('Notice: using memory storage for model usage');
   }
 }
 
@@ -580,12 +609,25 @@ app.post('/api/photos/save', (req, res) => {
     const filename = `${photoId}.png`;
     const filePath = path.join(uploadsDir, filename);
 
-    fs.writeFileSync(filePath, buffer);
+    try {
+      fs.writeFileSync(filePath, buffer);
+    } catch (fsErr) {
+      console.warn('Notice: Failed writing photo to disk:', fsErr.message);
+    }
 
-    const localIp = getLocalNetworkIp();
-    // Mobile download URL accessible via LAN Wi-Fi or localhost
-    const downloadUrl = `http://${localIp}:${PORT}/download/${photoId}`;
-    const directImageUrl = `http://${localIp}:${PORT}/uploads/${filename}`;
+    const isVercel = !!process.env.VERCEL;
+    let baseUrl;
+    if (isVercel || req.headers['x-forwarded-host'] || req.headers.host) {
+      const protocol = req.headers['x-forwarded-proto'] || (req.secure ? 'https' : 'http');
+      const host = req.headers['x-forwarded-host'] || req.headers.host;
+      baseUrl = `${protocol}://${host}`;
+    } else {
+      const localIp = getLocalNetworkIp();
+      baseUrl = `http://${localIp}:${PORT}`;
+    }
+
+    const downloadUrl = `${baseUrl}/download/${photoId}`;
+    const directImageUrl = `${baseUrl}/uploads/${filename}`;
 
     res.json({
       success: true,
@@ -791,6 +833,25 @@ app.get('/download/:id', (req, res) => {
 // ----------------------------------------------------
 // 4. GUESTBOOK & MANDATORY DATA COLLECTION
 // ----------------------------------------------------
+function getGuestsList() {
+  try {
+    if (fs.existsSync(guestsFilePath)) {
+      memoryGuests = JSON.parse(fs.readFileSync(guestsFilePath, 'utf8'));
+      return memoryGuests;
+    }
+  } catch (e) {}
+  return memoryGuests || [];
+}
+
+function saveGuestsList(list) {
+  memoryGuests = list;
+  try {
+    fs.writeFileSync(guestsFilePath, JSON.stringify(list, null, 2));
+  } catch (e) {
+    console.warn('Notice: Using in-memory guest list');
+  }
+}
+
 app.post('/api/guests', (req, res) => {
   try {
     const { name, age, gender, phone, email, rating, feedback, photoId, prodiId, prodiName } = req.body;
@@ -801,7 +862,7 @@ app.post('/api/guests', (req, res) => {
       });
     }
 
-    const guests = JSON.parse(fs.readFileSync(guestsFilePath, 'utf8'));
+    const guests = getGuestsList();
 
     const newGuest = {
       id: 'guest_' + Date.now(),
@@ -819,7 +880,7 @@ app.post('/api/guests', (req, res) => {
     };
 
     guests.unshift(newGuest);
-    fs.writeFileSync(guestsFilePath, JSON.stringify(guests, null, 2));
+    saveGuestsList(guests);
 
     res.json({
       success: true,
@@ -834,7 +895,7 @@ app.post('/api/guests', (req, res) => {
 
 app.get('/api/guests', (req, res) => {
   try {
-    const guests = JSON.parse(fs.readFileSync(guestsFilePath, 'utf8'));
+    const guests = getGuestsList();
     
     // Calculate stats
     const total = guests.length;
@@ -871,7 +932,7 @@ app.get('/api/guests', (req, res) => {
 
 app.get('/api/guests/export', (req, res) => {
   try {
-    const guests = JSON.parse(fs.readFileSync(guestsFilePath, 'utf8'));
+    const guests = getGuestsList();
     
     let csv = 'ID,Waktu,Nama Lengkap,Umur,Jenis Kelamin,Nomor HP,Email,Peminatan Prodi,Rating Bintang,Komentar & Saran,Photo ID\n';
     guests.forEach(g => {
@@ -902,6 +963,25 @@ app.get('/api/guests/export', (req, res) => {
 // ----------------------------------------------------
 // 5. QUESTIONNAIRE RESPONSES & ANALYTICS ENDPOINTS
 // ----------------------------------------------------
+function getQuestionnairesList() {
+  try {
+    if (fs.existsSync(questionnairesFilePath)) {
+      memoryQuestionnaires = JSON.parse(fs.readFileSync(questionnairesFilePath, 'utf8'));
+      return memoryQuestionnaires;
+    }
+  } catch (e) {}
+  return memoryQuestionnaires || [];
+}
+
+function saveQuestionnairesList(list) {
+  memoryQuestionnaires = list;
+  try {
+    fs.writeFileSync(questionnairesFilePath, JSON.stringify(list, null, 2));
+  } catch (e) {
+    console.warn('Notice: Using in-memory questionnaires list');
+  }
+}
+
 app.post('/api/questionnaires', (req, res) => {
   try {
     const {
@@ -914,7 +994,7 @@ app.post('/api/questionnaires', (req, res) => {
       respondentName
     } = req.body;
 
-    const list = JSON.parse(fs.readFileSync(questionnairesFilePath, 'utf8'));
+    const list = getQuestionnairesList();
 
     const newResponse = {
       id: 'resp_' + Date.now(),
@@ -929,7 +1009,7 @@ app.post('/api/questionnaires', (req, res) => {
     };
 
     list.unshift(newResponse);
-    fs.writeFileSync(questionnairesFilePath, JSON.stringify(list, null, 2));
+    saveQuestionnairesList(list);
 
     console.log(`📋 New Questionnaire Response recorded for photo: ${photoId} (Pref: ${newResponse.q5_brochure_preference})`);
 
@@ -946,7 +1026,7 @@ app.post('/api/questionnaires', (req, res) => {
 
 app.get('/api/questionnaires', (req, res) => {
   try {
-    const list = JSON.parse(fs.readFileSync(questionnairesFilePath, 'utf8'));
+    const list = getQuestionnairesList();
     const total = list.length;
 
     let avgFace = '5.0';
@@ -992,7 +1072,7 @@ app.get('/api/questionnaires', (req, res) => {
 
 app.get('/api/questionnaires/export', (req, res) => {
   try {
-    const list = JSON.parse(fs.readFileSync(questionnairesFilePath, 'utf8'));
+    const list = getQuestionnairesList();
     
     let csv = 'ID,Waktu,Photo ID,Q1_Kemiripan_Wajah(1-5),Q2_Kemiripan_Pose(1-5),Q3_Kesesuaian_Keyword(1-5),Q4_Keseruan_Marketing(1-5),Q5_Preferensi_Brosur\n';
     list.forEach(r => {
@@ -1017,12 +1097,17 @@ app.get('/api/questionnaires/export', (req, res) => {
   }
 });
 
-// Start Server
-app.listen(PORT, '0.0.0.0', () => {
-  const localIp = getLocalNetworkIp();
-  console.log(`\n======================================================`);
-  console.log(`📸 AI Photobooth Server running on port ${PORT}`);
-  console.log(`🌐 Local API:   http://localhost:${PORT}`);
-  console.log(`📱 LAN Network: http://${localIp}:${PORT}`);
-  console.log(`======================================================\n`);
-});
+// Export Express app for Vercel Serverless Functions
+export default app;
+
+// Start Server locally if not running on Vercel
+if (!process.env.VERCEL) {
+  app.listen(PORT, '0.0.0.0', () => {
+    const localIp = getLocalNetworkIp();
+    console.log(`\n======================================================`);
+    console.log(`📸 AI Photobooth Server running on port ${PORT}`);
+    console.log(`🌐 Local API:   http://localhost:${PORT}`);
+    console.log(`📱 LAN Network: http://${localIp}:${PORT}`);
+    console.log(`======================================================\n`);
+  });
+}
