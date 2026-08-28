@@ -65,6 +65,7 @@ const guestsFilePath = path.join(dataDir, 'guests.json');
 const questionnairesFilePath = path.join(dataDir, 'questionnaires.json');
 const modelUsageFilePath = path.join(dataDir, 'model_usage.json');
 const photosFilePath = path.join(dataDir, 'photos.json');
+const customPromptsFilePath = path.join(dataDir, 'custom_prompts.json');
 
 const SUPPORTED_MODELS = {
   'bytedance/seedream-5-lite': {
@@ -114,6 +115,7 @@ let memoryGuests = [];
 let memoryQuestionnaires = [];
 let memoryModelUsage = { ...SUPPORTED_MODELS };
 let memoryPhotos = {};
+let memoryPrompts = {};
 
 function initDataFile(filePath, bundledRelativePath, defaultVal) {
   try {
@@ -139,6 +141,26 @@ memoryGuests = initDataFile(guestsFilePath, 'data/guests.json', []);
 memoryQuestionnaires = initDataFile(questionnairesFilePath, 'data/questionnaires.json', []);
 memoryModelUsage = initDataFile(modelUsageFilePath, 'data/model_usage.json', SUPPORTED_MODELS);
 memoryPhotos = initDataFile(photosFilePath, 'data/photos.json', {});
+memoryPrompts = initDataFile(customPromptsFilePath, 'data/custom_prompts.json', {});
+
+function getCustomPromptsData() {
+  try {
+    if (fs.existsSync(customPromptsFilePath)) {
+      memoryPrompts = JSON.parse(fs.readFileSync(customPromptsFilePath, 'utf8'));
+      return memoryPrompts;
+    }
+  } catch (e) {}
+  return memoryPrompts || {};
+}
+
+function saveCustomPromptsData(prompts) {
+  memoryPrompts = prompts;
+  try {
+    fs.writeFileSync(customPromptsFilePath, JSON.stringify(prompts, null, 2));
+  } catch (e) {
+    console.warn('Notice: Using in-memory prompts');
+  }
+}
 
 function getPhotosMap() {
   try {
@@ -367,6 +389,49 @@ app.post('/api/models/reset-stats', (req, res) => {
     });
   } catch (error) {
     res.status(500).json({ error: 'Gagal mereset statistik model.' });
+  }
+});
+
+// ----------------------------------------------------
+// 1.15 PROMPT TEMPLATES MANAGEMENT ENDPOINTS
+// ----------------------------------------------------
+app.get('/api/prompts', (req, res) => {
+  try {
+    const data = getCustomPromptsData();
+    res.json({
+      success: true,
+      prompts: data
+    });
+  } catch (error) {
+    console.error('Get prompts error:', error);
+    res.status(500).json({ error: 'Gagal memuat template prompt.' });
+  }
+});
+
+app.post('/api/prompts/save-all', (req, res) => {
+  try {
+    const prompts = req.body;
+    saveCustomPromptsData(prompts);
+    res.json({
+      success: true,
+      message: 'Template prompt berhasil disimpan.',
+      prompts
+    });
+  } catch (error) {
+    console.error('Save prompts error:', error);
+    res.status(500).json({ error: 'Gagal menyimpan template prompt.' });
+  }
+});
+
+app.post('/api/prompts/reset', (req, res) => {
+  try {
+    saveCustomPromptsData({});
+    res.json({
+      success: true,
+      message: 'Seluruh template prompt berhasil dikembalikan ke pengaturan awal.'
+    });
+  } catch (error) {
+    res.status(500).json({ error: 'Gagal mereset template prompt.' });
   }
 });
 
