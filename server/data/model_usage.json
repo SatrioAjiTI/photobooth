@@ -26,8 +26,8 @@
     "icon": "🎨",
     "shortName": "SD Inpainting",
     "description": "Model inpainting & background replacement dengan kontrol komposisi kuat.",
-    "count": 0,
-    "lastUsed": null
+    "count": 1,
+    "lastUsed": "2026-08-28T07:37:36.452Z"
   },
   "ideogram-ai/ideogram-v2-turbo": {
     "id": "ideogram-ai/ideogram-v2-turbo",

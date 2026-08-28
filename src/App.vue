@@ -1,7 +1,8 @@
 <template>
   <div class="photobooth-app">
-    <!-- Top Navigation Bar -->
+    <!-- Top Navigation Bar (Hidden on Mobile Download Landing Page) -->
     <Navbar 
+      v-if="!isDownloadPage"
       :currentStep="currentStep"
       :hasImage="!!originalImage"
       :hasAiImage="!!aiGeneratedImage"
@@ -15,13 +16,19 @@
 
     <!-- Main Content Stage with Step / Page Transitions -->
     <main class="app-main-content">
-      <!-- 1. DEDICATED ADMIN & SETTING PAGE (/setting or /settings) -->
-      <AdminSettingView 
-        v-if="isSettingPage" 
+      <!-- 1. MOBILE PHOTO DOWNLOAD PAGE (/download/:id) -->
+      <MobileDownloadView 
+        v-if="isDownloadPage" 
         @go-photobooth="navigateTo('/')"
       />
 
-      <!-- 2. PHOTOBOOTH 3-STEP FLOW (/) -->
+      <!-- 2. DEDICATED ADMIN & SETTING PAGE (/setting or /settings) -->
+      <AdminSettingView 
+        v-else-if="isSettingPage" 
+        @go-photobooth="navigateTo('/')"
+      />
+
+      <!-- 3. PHOTOBOOTH 3-STEP FLOW (/) -->
       <transition v-else name="step-fade" mode="out-in">
         <!-- STEP 1: CAPTURE / UPLOAD -->
         <Step1Capture 
@@ -71,6 +78,7 @@ import Step1Capture from './components/Step1Capture.vue';
 import Step2AIStudio from './components/Step2AIStudio.vue';
 import Step3Download from './components/Step3Download.vue';
 import AdminSettingView from './components/AdminSettingView.vue';
+import MobileDownloadView from './components/MobileDownloadView.vue';
 import SettingsModal from './components/SettingsModal.vue';
 import GuestbookModal from './components/GuestbookModal.vue';
 
@@ -81,6 +89,10 @@ const originalImage = ref(null);
 const aiGeneratedImage = ref(null);
 const isSettingsOpen = ref(false);
 const isGuestbookOpen = ref(false);
+
+const isDownloadPage = computed(() => {
+  return currentPath.value.startsWith('/download/') || currentPath.value.startsWith('/download');
+});
 
 const isSettingPage = computed(() => {
   return (

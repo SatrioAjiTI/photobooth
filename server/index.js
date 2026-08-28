@@ -757,8 +757,41 @@ app.post('/api/photos/save', async (req, res) => {
   }
 });
 
+// Get Photo Data by ID
+app.get('/api/photos/:id', (req, res) => {
+  const photoId = req.params.id;
+  const filename = `${photoId}.png`;
+  const filePath = path.join(uploadsDir, filename);
+
+  const photos = getPhotosMap();
+  const photoRecord = photos[photoId] || memoryPhotos[photoId];
+
+  let imageUrl = '';
+  if (fs.existsSync(filePath)) {
+    imageUrl = `/uploads/${filename}`;
+  } else if (photoRecord?.cdnUrl) {
+    imageUrl = photoRecord.cdnUrl;
+  } else if (photoRecord?.imageBase64) {
+    imageUrl = photoRecord.imageBase64;
+  }
+
+  if (!imageUrl && !photoRecord) {
+    return res.status(404).json({ error: 'Foto tidak ditemukan atau sesi telah berakhir' });
+  }
+
+  res.json({
+    success: true,
+    photoId,
+    imageUrl: imageUrl || photoRecord?.imageBase64 || photoRecord?.cdnUrl,
+    cdnUrl: photoRecord?.cdnUrl || null,
+    guestName: photoRecord?.guestName || 'Pengunjung',
+    prodiId: photoRecord?.prodiId || 'informatika',
+    createdAt: photoRecord?.createdAt || new Date().toISOString()
+  });
+});
+
 // Mobile Download Landing Page (Opened when guest scans QR code)
-app.get('/download/:id', (req, res) => {
+app.get(['/download/:id', '/api/download/:id'], (req, res) => {
   const photoId = req.params.id;
   const filename = `${photoId}.png`;
   const filePath = path.join(uploadsDir, filename);

@@ -566,7 +566,9 @@ async function handleSubmitGuestForm() {
 
     // 1. Save framed newspaper image to server for QR code mobile download
     let photoUrl = '';
-    let photoId = 'photo_' + Date.now();
+    let photoId = 'photo_' + Date.now() + '_' + Math.random().toString(36).substring(2, 7);
+    const baseUrl = window.location.origin;
+    const directDownloadUrl = `${baseUrl}/download/${photoId}`;
     
     try {
       const uploadRes = await axios.post('/api/photos/save', {
@@ -575,15 +577,20 @@ async function handleSubmitGuestForm() {
         guestName: guestForm.value.name,
         prodiId: prodi.id,
         prodiName: prodi.name
-      });
+      }, { timeout: 30000 });
+
       if (uploadRes.data?.success) {
-        photoId = uploadRes.data.photoId;
-        mobileDownloadUrl.value = uploadRes.data.downloadUrl;
+        photoId = uploadRes.data.photoId || photoId;
+        mobileDownloadUrl.value = uploadRes.data.downloadUrl || directDownloadUrl;
+        savedPhotoId.value = photoId;
+      } else {
+        mobileDownloadUrl.value = directDownloadUrl;
         savedPhotoId.value = photoId;
       }
     } catch (e) {
-      console.warn('Could not save photo to backend, using direct fallback', e);
-      mobileDownloadUrl.value = window.location.origin;
+      console.warn('Could not save photo to backend, using direct download URL fallback', e);
+      mobileDownloadUrl.value = directDownloadUrl;
+      savedPhotoId.value = photoId;
     }
 
     // 2. Submit guest record (using q1_face as overall rating)

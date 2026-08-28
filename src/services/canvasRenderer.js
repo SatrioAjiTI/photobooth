@@ -21,7 +21,7 @@ export async function renderPhotoboothFrame({
 
         renderNewspaperFrame(canvas, ctx, img, prodi, guestName, dateText);
 
-        resolve(canvas.toDataURL('image/png', 1.0));
+        resolve(canvas.toDataURL('image/jpeg', 0.92));
       } catch (err) {
         console.error('Canvas render error:', err);
         reject(err);
