@@ -62,9 +62,12 @@ try {
 }
 
 const guestsFilePath = path.join(dataDir, 'guests.json');
+const guestsBackupFilePath = path.join(dataDir, 'guests_backup.json');
 const questionnairesFilePath = path.join(dataDir, 'questionnaires.json');
+const questionnairesBackupFilePath = path.join(dataDir, 'questionnaires_backup.json');
 const modelUsageFilePath = path.join(dataDir, 'model_usage.json');
 const photosFilePath = path.join(dataDir, 'photos.json');
+const photosBackupFilePath = path.join(dataDir, 'photos_backup.json');
 
 const SUPPORTED_MODELS = {
   'bytedance/seedream-5-lite': {
@@ -73,7 +76,7 @@ const SUPPORTED_MODELS = {
     provider: 'ByteDance',
     icon: '🌊',
     shortName: 'SeaDream 5 Lite',
-    description: 'Multi-Modal 2K Image-to-Image Instruction Model, sangat presisi menjaga muka & pose.',
+    description: 'Multi-Modal 2K Image-to-Image Instruction Model, sangat presisi menjaga muka & pose asli.',
     count: 0,
     lastUsed: null
   },
@@ -82,38 +85,28 @@ const SUPPORTED_MODELS = {
     name: 'Google Nano Banana 2 Lite',
     provider: 'Google',
     icon: '🍌',
-    shortName: 'Nano Banana 2',
-    description: 'Ultra-Fast Lightweight Multi-Modal Diffusion Model dengan latensi rendah.',
+    shortName: 'Nano Banana 2 Lite',
+    description: 'Ultra-Fast Lightweight Multi-Modal Diffusion Model dengan latensi rendah dan hasil instan.',
     count: 0,
     lastUsed: null
   },
-  'black-forest-labs/flux-2-flex': {
-    id: 'black-forest-labs/flux-2-flex',
-    name: 'FLUX.2 Flex (Black Forest Labs)',
-    provider: 'Black Forest Labs',
+  'bytedance/seedream-5-pro': {
+    id: 'bytedance/seedream-5-pro',
+    name: 'ByteDance SeaDream 5.0 Pro',
+    provider: 'ByteDance',
+    icon: '✨',
+    shortName: 'SeaDream 5.0 Pro',
+    description: 'Flagship Multi-Reference Image Model dengan resolusi ultra-tajam dan konsistensi tinggi.',
+    count: 0,
+    lastUsed: null
+  },
+  'google/nano-banana-2': {
+    id: 'google/nano-banana-2',
+    name: 'Google Nano Banana 2 (Standard)',
+    provider: 'Google',
     icon: '⚡',
-    shortName: 'FLUX.2 Flex',
-    description: 'Generasi gambar tingkat lanjut dengan pemrosesan multi-modal dan kontrol input gambar presisi.',
-    count: 0,
-    lastUsed: null
-  },
-  'openai/gpt-5.6-luna': {
-    id: 'openai/gpt-5.6-luna',
-    name: 'OpenAI GPT-5.6 Luna Vision',
-    provider: 'OpenAI',
-    icon: '🌙',
-    shortName: 'GPT-5.6 Luna',
-    description: 'Multi-modal image-to-image neural transformation dengan pemahaman prompt bahasa alami mendalam.',
-    count: 0,
-    lastUsed: null
-  },
-  'grok-imagine-image-2': {
-    id: 'grok-imagine-image-2',
-    name: 'xAI Grok Imagine Image 2',
-    provider: 'xAI',
-    icon: '🚀',
-    shortName: 'Grok Imagine 2',
-    description: 'Ultra-creative neural renderer dengan style transfer dan rendering visual dinamis.',
+    shortName: 'Nano Banana 2 HD',
+    description: 'High-Quality Gemini Vision Image Generator dengan kontrol visual dan detail lebih kaya.',
     count: 0,
     lastUsed: null
   }
@@ -124,6 +117,50 @@ let memoryGuests = [];
 let memoryQuestionnaires = [];
 let memoryModelUsage = { ...SUPPORTED_MODELS };
 let memoryPhotos = {};
+
+// Multi-layer safe data initializer with automatic merge & backup restore
+function initMergedListFile(primaryPath, backupPath, bundledRelativePath, defaultVal) {
+  let primary = [];
+  let backup = [];
+  try {
+    if (fs.existsSync(primaryPath)) primary = JSON.parse(fs.readFileSync(primaryPath, 'utf8'));
+  } catch (e) {}
+  try {
+    if (fs.existsSync(backupPath)) backup = JSON.parse(fs.readFileSync(backupPath, 'utf8'));
+  } catch (e) {}
+
+  // Merge unique records by id
+  const map = new Map();
+  if (Array.isArray(backup)) backup.forEach(item => { if (item?.id) map.set(item.id, item); });
+  if (Array.isArray(primary)) primary.forEach(item => { if (item?.id) map.set(item.id, item); });
+
+  const merged = Array.from(map.values());
+  if (merged.length > 0) {
+    try {
+      fs.writeFileSync(primaryPath, JSON.stringify(merged, null, 2));
+      fs.writeFileSync(backupPath, JSON.stringify(merged, null, 2));
+    } catch (e) {}
+    return merged;
+  }
+
+  // Fallback to bundled data if available
+  try {
+    const bundledPath = path.join(__dirname, bundledRelativePath);
+    if (fs.existsSync(bundledPath)) {
+      const content = fs.readFileSync(bundledPath, 'utf8');
+      const parsed = JSON.parse(content);
+      fs.writeFileSync(primaryPath, content);
+      fs.writeFileSync(backupPath, content);
+      return parsed;
+    }
+  } catch (e) {}
+
+  try {
+    fs.writeFileSync(primaryPath, JSON.stringify(defaultVal, null, 2));
+    fs.writeFileSync(backupPath, JSON.stringify(defaultVal, null, 2));
+  } catch (e) {}
+  return defaultVal;
+}
 
 function initDataFile(filePath, bundledRelativePath, defaultVal) {
   try {
@@ -145,8 +182,8 @@ function initDataFile(filePath, bundledRelativePath, defaultVal) {
   }
 }
 
-memoryGuests = initDataFile(guestsFilePath, 'data/guests.json', []);
-memoryQuestionnaires = initDataFile(questionnairesFilePath, 'data/questionnaires.json', []);
+memoryGuests = initMergedListFile(guestsFilePath, guestsBackupFilePath, 'data/guests.json', []);
+memoryQuestionnaires = initMergedListFile(questionnairesFilePath, questionnairesBackupFilePath, 'data/questionnaires.json', []);
 memoryModelUsage = initDataFile(modelUsageFilePath, 'data/model_usage.json', SUPPORTED_MODELS);
 memoryPhotos = initDataFile(photosFilePath, 'data/photos.json', {});
 
@@ -227,22 +264,20 @@ function recordModelUsage(modelId) {
 function buildReplicateInput(modelId, prompt, uploadedImageUrl, aspect_ratio) {
   const ar = aspect_ratio || '16:9';
 
-  // 1. ByteDance SeaDream 5 Lite (Multi-Modal Image-to-Image Instruction Model)
-  if (modelId === 'bytedance/seedream-5-lite') {
+  // 1. ByteDance SeaDream Family (seedream-5-lite, seedream-5-pro, etc.)
+  if (modelId.includes('seedream') || modelId.includes('bytedance')) {
     return {
+      prompt: prompt,
+      image_input: [uploadedImageUrl],
+      aspect_ratio: ar,
       size: '2K',
-      prompt: prompt,
       max_images: 1,
-      image_input: [uploadedImageUrl],
-      aspect_ratio: ar,
-      output_format: 'png',
-      return_byteplus_urls: false,
-      sequential_image_generation: 'disabled'
+      output_format: 'png'
     };
   }
 
-  // 2. Google Nano Banana 2 Lite / Gemini Image Family
-  if (modelId.includes('nano-banana')) {
+  // 2. Google Nano Banana / Gemini Flash Image Family
+  if (modelId.includes('nano-banana') || modelId.includes('google')) {
     return {
       prompt: prompt,
       image_input: [uploadedImageUrl],
@@ -251,50 +286,10 @@ function buildReplicateInput(modelId, prompt, uploadedImageUrl, aspect_ratio) {
     };
   }
 
-  // 3. Black Forest Labs FLUX.2 Flex / FLUX Series (Image Conditioning / Inpainting / Style)
-  if (modelId.includes('flux')) {
-    return {
-      prompt: prompt,
-      image: uploadedImageUrl,
-      input_image: uploadedImageUrl,
-      image_prompt: uploadedImageUrl,
-      aspect_ratio: ar,
-      prompt_strength: 0.75,
-      guidance: 3.5,
-      output_format: 'png'
-    };
-  }
-
-  // 4. OpenAI GPT-5.6 Luna Vision Multi-Modal
-  if (modelId.includes('gpt-5.6') || modelId.includes('luna') || modelId.includes('openai')) {
-    return {
-      prompt: prompt,
-      image: uploadedImageUrl,
-      image_input: [uploadedImageUrl],
-      input_image: uploadedImageUrl,
-      aspect_ratio: ar,
-      output_format: 'png'
-    };
-  }
-
-  // 5. xAI Grok Imagine Image 2
-  if (modelId.includes('grok')) {
-    return {
-      prompt: prompt,
-      image: uploadedImageUrl,
-      image_input: [uploadedImageUrl],
-      input_image: uploadedImageUrl,
-      aspect_ratio: ar,
-      output_format: 'png'
-    };
-  }
-
-  // Default Fallback
+  // Multi-modal image input default
   return {
     prompt: prompt,
-    image: uploadedImageUrl,
     image_input: [uploadedImageUrl],
-    input_image: uploadedImageUrl,
     aspect_ratio: ar,
     output_format: 'png'
   };
@@ -574,62 +569,77 @@ app.post('/api/replicate/generate', async (req, res) => {
     // 1. Upload base64 image to public CDN with auto-retry and multi-provider fallback
     const uploadedImageUrl = await uploadToReplicateFiles(image, token);
 
-    // 2. Live Replicate API Call with model-specific input payload
-    console.log(`🚀 Sending prediction request to Replicate (${targetModel}) with prompt: "${prompt}"`);
-    console.log(`🖼️ Input Image URL: ${uploadedImageUrl.substring(0, 80)}...`);
+    // 2. Helper function to call Replicate prediction and poll for result
+    async function executeReplicateCall(modelName) {
+      console.log(`🚀 Sending prediction request to Replicate (${modelName}) with prompt: "${prompt}"`);
+      console.log(`🖼️ Input Image URL: ${uploadedImageUrl.substring(0, 80)}...`);
 
-    const inputPayload = buildReplicateInput(targetModel, prompt, uploadedImageUrl, aspect_ratio);
-    const replicateUrl = `https://api.replicate.com/v1/models/${targetModel}/predictions`;
+      const inputPayload = buildReplicateInput(modelName, prompt, uploadedImageUrl, aspect_ratio);
+      const replicateUrl = `https://api.replicate.com/v1/models/${modelName}/predictions`;
 
-    const response = await fetchWithRetry(() => {
-      return axios.post(
-        replicateUrl,
-        { input: inputPayload },
-        {
-          headers: {
-            'Authorization': `Bearer ${token.trim()}`,
-            'Content-Type': 'application/json'
-          },
-          httpsAgent,
-          timeout: 240000
+      const response = await fetchWithRetry(() => {
+        return axios.post(
+          replicateUrl,
+          { input: inputPayload },
+          {
+            headers: {
+              'Authorization': `Bearer ${token.trim()}`,
+              'Content-Type': 'application/json'
+            },
+            httpsAgent,
+            timeout: 240000
+          }
+        );
+      }, 2, 2000);
+
+      let prediction = response.data;
+      console.log(`Prediction created: ${prediction.id}, Status: ${prediction.status}`);
+
+      // Polling loop
+      const startTime = Date.now();
+      while (prediction.status === 'starting' || prediction.status === 'processing') {
+        if (Date.now() - startTime > 240000) {
+          throw new Error('AI Generation timed out after 240 seconds.');
         }
-      );
-    }, 3, 2000);
+        await new Promise(resolve => setTimeout(resolve, 2000));
+        
+        try {
+          const pollRes = await fetchWithRetry(() => {
+            return axios.get(
+              `https://api.replicate.com/v1/predictions/${prediction.id}`,
+              {
+                headers: {
+                  'Authorization': `Bearer ${token.trim()}`
+                },
+                httpsAgent,
+                timeout: 25000
+              }
+            );
+          }, 3, 1000);
 
-    let prediction = response.data;
-    console.log(`Prediction created: ${prediction.id}, Status: ${prediction.status}`);
-
-    // If prediction is still processing, poll for up to 240 seconds
-    const startTime = Date.now();
-    while (prediction.status === 'starting' || prediction.status === 'processing') {
-      if (Date.now() - startTime > 240000) {
-        throw new Error('AI Generation timed out after 240 seconds.');
+          prediction = pollRes.data;
+          console.log(`Polling prediction ${prediction.id}: ${prediction.status}`);
+        } catch (pollErr) {
+          console.warn(`Polling minor network blip (${pollErr.message}), continuing polling...`);
+        }
       }
-      await new Promise(resolve => setTimeout(resolve, 2000));
-      
-      try {
-        const pollRes = await fetchWithRetry(() => {
-          return axios.get(
-            `https://api.replicate.com/v1/predictions/${prediction.id}`,
-            {
-              headers: {
-                'Authorization': `Bearer ${token.trim()}`
-              },
-              httpsAgent,
-              timeout: 25000
-            }
-          );
-        }, 3, 1000);
 
-        prediction = pollRes.data;
-        console.log(`Polling prediction ${prediction.id}: ${prediction.status}`);
-      } catch (pollErr) {
-        console.warn(`Polling minor network blip (${pollErr.message}), continuing polling...`);
+      if (prediction.status === 'failed' || prediction.status === 'canceled') {
+        throw new Error(prediction.error || 'Replicate AI processing failed.');
       }
+
+      return prediction;
     }
 
-    if (prediction.status === 'failed' || prediction.status === 'canceled') {
-      throw new Error(prediction.error || 'Replicate AI processing failed.');
+    // Call Replicate with automatic model fallback on error
+    let prediction;
+    let actualModelUsed = targetModel;
+    try {
+      prediction = await executeReplicateCall(targetModel);
+    } catch (primaryModelErr) {
+      console.warn(`⚠️ Model "${targetModel}" failed (${primaryModelErr.message}). Automatically falling back to "bytedance/seedream-5-lite"...`);
+      actualModelUsed = 'bytedance/seedream-5-lite';
+      prediction = await executeReplicateCall('bytedance/seedream-5-lite');
     }
 
     console.log('📦 Raw prediction.output:', JSON.stringify(prediction.output));
@@ -1052,6 +1062,9 @@ function saveGuestsList(list) {
   } catch (e) {
     console.warn('Notice: Using in-memory guest list');
   }
+  try {
+    fs.writeFileSync(guestsBackupFilePath, JSON.stringify(list, null, 2));
+  } catch (e) {}
 }
 
 app.post('/api/guests', (req, res) => {
@@ -1165,10 +1178,17 @@ app.get('/api/guests/export', (req, res) => {
 // ----------------------------------------------------
 // 5. QUESTIONNAIRE RESPONSES & ANALYTICS ENDPOINTS
 // ----------------------------------------------------
+
 function getQuestionnairesList() {
   try {
     if (fs.existsSync(questionnairesFilePath)) {
       memoryQuestionnaires = JSON.parse(fs.readFileSync(questionnairesFilePath, 'utf8'));
+      return memoryQuestionnaires;
+    }
+  } catch (e) {}
+  try {
+    if (fs.existsSync(questionnairesBackupFilePath)) {
+      memoryQuestionnaires = JSON.parse(fs.readFileSync(questionnairesBackupFilePath, 'utf8'));
       return memoryQuestionnaires;
     }
   } catch (e) {}
@@ -1182,6 +1202,9 @@ function saveQuestionnairesList(list) {
   } catch (e) {
     console.warn('Notice: Using in-memory questionnaires list');
   }
+  try {
+    fs.writeFileSync(questionnairesBackupFilePath, JSON.stringify(list, null, 2));
+  } catch (e) {}
 }
 
 app.post('/api/questionnaires', (req, res) => {
@@ -1190,8 +1213,13 @@ app.post('/api/questionnaires', (req, res) => {
       photoId,
       q1_face,
       q2_pose,
+      q3_hands,
+      q_hands,
+      q4_keyword,
       q3_keyword,
+      q5_marketing,
       q4_marketing,
+      q6_brochure_preference,
       q5_brochure_preference,
       respondentName
     } = req.body;
@@ -1204,16 +1232,21 @@ app.post('/api/questionnaires', (req, res) => {
       respondentName: respondentName || 'Responden Photobooth',
       q1_face: parseInt(q1_face || 5, 10),
       q2_pose: parseInt(q2_pose || 5, 10),
-      q3_keyword: parseInt(q3_keyword || 5, 10),
-      q4_marketing: parseInt(q4_marketing || 5, 10),
-      q5_brochure_preference: q5_brochure_preference || 'brosur_kreatif',
+      q3_hands: parseInt(q3_hands || q_hands || 5, 10),
+      q4_keyword: parseInt(q4_keyword || q3_keyword || 5, 10),
+      q5_marketing: parseInt(q5_marketing || q4_marketing || 5, 10),
+      q6_brochure_preference: q6_brochure_preference || q5_brochure_preference || 'brosur_kreatif',
+      // Compatibility aliases
+      q3_keyword: parseInt(q4_keyword || q3_keyword || 5, 10),
+      q4_marketing: parseInt(q5_marketing || q4_marketing || 5, 10),
+      q5_brochure_preference: q6_brochure_preference || q5_brochure_preference || 'brosur_kreatif',
       createdAt: new Date().toISOString()
     };
 
     list.unshift(newResponse);
     saveQuestionnairesList(list);
 
-    console.log(`📋 New Questionnaire Response recorded for photo: ${photoId} (Pref: ${newResponse.q5_brochure_preference})`);
+    console.log(`📋 New Questionnaire Response recorded for photo: ${photoId} (Pref: ${newResponse.q6_brochure_preference})`);
 
     res.json({
       success: true,
@@ -1233,6 +1266,7 @@ app.get('/api/questionnaires', (req, res) => {
 
     let avgFace = '5.0';
     let avgPose = '5.0';
+    let avgHands = '5.0';
     let avgKeyword = '5.0';
     let avgMarketing = '5.0';
     let preferenceCounts = { brosur_kreatif: 0, brosur_fisik: 0 };
@@ -1240,11 +1274,13 @@ app.get('/api/questionnaires', (req, res) => {
     if (total > 0) {
       avgFace = (list.reduce((s, r) => s + (r.q1_face || 5), 0) / total).toFixed(2);
       avgPose = (list.reduce((s, r) => s + (r.q2_pose || 5), 0) / total).toFixed(2);
-      avgKeyword = (list.reduce((s, r) => s + (r.q3_keyword || 5), 0) / total).toFixed(2);
-      avgMarketing = (list.reduce((s, r) => s + (r.q4_marketing || 5), 0) / total).toFixed(2);
+      avgHands = (list.reduce((s, r) => s + (r.q3_hands || r.q_hands || 5), 0) / total).toFixed(2);
+      avgKeyword = (list.reduce((s, r) => s + (r.q4_keyword || r.q3_keyword || 5), 0) / total).toFixed(2);
+      avgMarketing = (list.reduce((s, r) => s + (r.q5_marketing || r.q4_marketing || 5), 0) / total).toFixed(2);
 
       list.forEach(r => {
-        if (r.q5_brochure_preference === 'brosur_fisik') {
+        const pref = r.q6_brochure_preference || r.q5_brochure_preference;
+        if (pref === 'brosur_fisik') {
           preferenceCounts.brosur_fisik++;
         } else {
           preferenceCounts.brosur_kreatif++;
@@ -1260,6 +1296,7 @@ app.get('/api/questionnaires', (req, res) => {
       stats: {
         avgFace,
         avgPose,
+        avgHands,
         avgKeyword,
         avgMarketing,
         preferenceCounts,
@@ -1276,17 +1313,19 @@ app.get('/api/questionnaires/export', (req, res) => {
   try {
     const list = getQuestionnairesList();
     
-    let csv = 'ID,Waktu,Photo ID,Q1_Kemiripan_Wajah(1-5),Q2_Kemiripan_Pose(1-5),Q3_Kesesuaian_Keyword(1-5),Q4_Keseruan_Marketing(1-5),Q5_Preferensi_Brosur\n';
+    let csv = 'ID,Waktu,Photo ID,Q1_Kemiripan_Wajah(1-5),Q2_Kemiripan_Pose(1-5),Q3_Konsistensi_Tangan(1-5),Q4_Kesesuaian_Keyword(1-5),Q5_Keseruan_Marketing(1-5),Q6_Preferensi_Brosur\n';
     list.forEach(r => {
+      const pref = r.q6_brochure_preference || r.q5_brochure_preference;
       const row = [
         `"${r.id}"`,
         `"${r.createdAt}"`,
         `"${r.photoId || ''}"`,
-        `"${r.q1_face}"`,
-        `"${r.q2_pose}"`,
-        `"${r.q3_keyword}"`,
-        `"${r.q4_marketing}"`,
-        `"${r.q5_brochure_preference === 'brosur_kreatif' ? 'Brosur Kreatif (AI Photobooth)' : 'Brosur Fisik Konvensional'}"`
+        `"${r.q1_face || 5}"`,
+        `"${r.q2_pose || 5}"`,
+        `"${r.q3_hands || r.q_hands || 5}"`,
+        `"${r.q4_keyword || r.q3_keyword || 5}"`,
+        `"${r.q5_marketing || r.q4_marketing || 5}"`,
+        `"${pref === 'brosur_kreatif' ? 'Brosur Kreatif (AI Photobooth)' : 'Brosur Fisik Konvensional'}"`
       ];
       csv += row.join(',') + '\n';
     });

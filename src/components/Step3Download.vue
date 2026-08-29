@@ -206,35 +206,35 @@
                 </div>
               </div>
 
-              <!-- Q3: Kemiripan Keyword & Gambar -->
+              <!-- Q3: Konsistensi Jumlah Jari & Tangan -->
               <div class="q-item-box">
-                <label class="q-label">3. Seberapa mirip hasil Keyword dan Gambar? <span class="req">*</span></label>
+                <label class="q-label">3. Apakah jumlah tangan dan jari yang dihasilkan konsisten dan wajar? <span class="req">*</span></label>
                 <div class="scale-options">
                   <button 
                     v-for="val in [1, 2, 3, 4, 5]" 
                     :key="val" 
                     type="button" 
                     class="scale-btn"
-                    :class="{ selected: questionnaire.q3_keyword === val }"
-                    @click="questionnaire.q3_keyword = val"
+                    :class="{ selected: questionnaire.q3_hands === val }"
+                    @click="questionnaire.q3_hands = val"
                   >
                     <span class="scale-num">{{ val }}</span>
-                    <span class="scale-desc">{{ getScaleDesc('q3', val) }}</span>
+                    <span class="scale-desc">{{ getScaleDesc('q3_hands', val) }}</span>
                   </button>
                 </div>
               </div>
 
-              <!-- Q4: Keseruan untuk Brosur -->
+              <!-- Q4: Kemiripan Keyword & Gambar -->
               <div class="q-item-box">
-                <label class="q-label">4. Seberapa seru AI Photobooth untuk brosur? <span class="req">*</span></label>
+                <label class="q-label">4. Seberapa mirip hasil Keyword dan Gambar? <span class="req">*</span></label>
                 <div class="scale-options">
                   <button 
                     v-for="val in [1, 2, 3, 4, 5]" 
                     :key="val" 
                     type="button" 
                     class="scale-btn"
-                    :class="{ selected: questionnaire.q4_marketing === val }"
-                    @click="questionnaire.q4_marketing = val"
+                    :class="{ selected: questionnaire.q4_keyword === val }"
+                    @click="questionnaire.q4_keyword = val"
                   >
                     <span class="scale-num">{{ val }}</span>
                     <span class="scale-desc">{{ getScaleDesc('q4', val) }}</span>
@@ -242,14 +242,32 @@
                 </div>
               </div>
 
-              <!-- Q5: Preferensi Brosur -->
+              <!-- Q5: Keseruan untuk Brosur -->
               <div class="q-item-box">
-                <label class="q-label">5. Apabila Anda diperbolehkan memilih, mana yang lebih sesuai untuk Anda? <span class="req">*</span></label>
+                <label class="q-label">5. Seberapa seru AI Photobooth untuk brosur? <span class="req">*</span></label>
+                <div class="scale-options">
+                  <button 
+                    v-for="val in [1, 2, 3, 4, 5]" 
+                    :key="val" 
+                    type="button" 
+                    class="scale-btn"
+                    :class="{ selected: questionnaire.q5_marketing === val }"
+                    @click="questionnaire.q5_marketing = val"
+                  >
+                    <span class="scale-num">{{ val }}</span>
+                    <span class="scale-desc">{{ getScaleDesc('q5', val) }}</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Q6: Preferensi Brosur -->
+              <div class="q-item-box">
+                <label class="q-label">6. Apabila Anda diperbolehkan memilih, mana yang lebih sesuai untuk Anda? <span class="req">*</span></label>
                 <div class="choice-cards-stack">
                   <div 
                     class="choice-card"
-                    :class="{ selected: questionnaire.q5_brochure_preference === 'brosur_fisik' }"
-                    @click="questionnaire.q5_brochure_preference = 'brosur_fisik'"
+                    :class="{ selected: questionnaire.q6_brochure_preference === 'brosur_fisik' }"
+                    @click="questionnaire.q6_brochure_preference = 'brosur_fisik'"
                   >
                     <div class="choice-radio"></div>
                     <div class="choice-info">
@@ -260,8 +278,8 @@
 
                   <div 
                     class="choice-card"
-                    :class="{ selected: questionnaire.q5_brochure_preference === 'brosur_kreatif' }"
-                    @click="questionnaire.q5_brochure_preference = 'brosur_kreatif'"
+                    :class="{ selected: questionnaire.q6_brochure_preference === 'brosur_kreatif' }"
+                    @click="questionnaire.q6_brochure_preference = 'brosur_kreatif'"
                   >
                     <div class="choice-radio"></div>
                     <div class="choice-info">
@@ -460,9 +478,10 @@ const guestForm = ref({
 const questionnaire = ref({
   q1_face: null,
   q2_pose: null,
-  q3_keyword: null,
-  q4_marketing: null,
-  q5_brochure_preference: null
+  q3_hands: null,
+  q4_keyword: null,
+  q5_marketing: null,
+  q6_brochure_preference: null
 });
 
 // QR Modal & Mobile Download
@@ -475,8 +494,9 @@ function getScaleDesc(questionKey, val) {
   const descriptions = {
     q1: { 1: 'Tidak Mirip', 2: 'Kurang', 3: 'Cukup', 4: 'Mirip', 5: 'Sangat Mirip' },
     q2: { 1: 'Berubah', 2: 'Kurang', 3: 'Cukup', 4: 'Mirip', 5: 'Sangat Mirip' },
-    q3: { 1: 'Tidak Sesuai', 2: 'Kurang', 3: 'Cukup', 4: 'Sesuai', 5: 'Sangat Sesuai' },
-    q4: { 1: 'Biasa', 2: 'Cukup', 3: 'Menarik', 4: 'Seru', 5: 'Sangat Seru!' }
+    q3_hands: { 1: 'Sangat Cacat / Berlebih', 2: 'Kurang Rapi', 3: 'Cukup Wajar', 4: 'Rapi & Konsisten', 5: 'Sangat Rapi (Natural)' },
+    q4: { 1: 'Tidak Sesuai', 2: 'Kurang', 3: 'Cukup', 4: 'Sesuai', 5: 'Sangat Sesuai' },
+    q5: { 1: 'Biasa', 2: 'Cukup', 3: 'Menarik', 4: 'Seru', 5: 'Sangat Seru!' }
   };
   return descriptions[questionKey]?.[val] || '';
 }
@@ -550,12 +570,13 @@ async function handleSubmitGuestForm() {
   if (
     questionnaire.value.q1_face === null ||
     questionnaire.value.q2_pose === null ||
-    questionnaire.value.q3_keyword === null ||
-    questionnaire.value.q4_marketing === null ||
-    !questionnaire.value.q5_brochure_preference
+    questionnaire.value.q3_hands === null ||
+    questionnaire.value.q4_keyword === null ||
+    questionnaire.value.q5_marketing === null ||
+    !questionnaire.value.q6_brochure_preference
   ) {
     activeFormTab.value = 'kuesioner';
-    alert('Mohon jawab seluruh pertanyaan kuesioner riset (nomor 1 sampai 5) terlebih dahulu.');
+    alert('Mohon jawab seluruh pertanyaan kuesioner riset (nomor 1 sampai 6) terlebih dahulu.');
     return;
   }
 
@@ -622,9 +643,14 @@ async function handleSubmitGuestForm() {
         respondentGender: guestForm.value.gender,
         q1_face: questionnaire.value.q1_face,
         q2_pose: questionnaire.value.q2_pose,
-        q3_keyword: questionnaire.value.q3_keyword,
-        q4_marketing: questionnaire.value.q4_marketing,
-        q5_brochure_preference: questionnaire.value.q5_brochure_preference
+        q3_hands: questionnaire.value.q3_hands,
+        q4_keyword: questionnaire.value.q4_keyword,
+        q5_marketing: questionnaire.value.q5_marketing,
+        q6_brochure_preference: questionnaire.value.q6_brochure_preference,
+        // Backward compatibility mappings
+        q3_keyword: questionnaire.value.q4_keyword,
+        q4_marketing: questionnaire.value.q5_marketing,
+        q5_brochure_preference: questionnaire.value.q6_brochure_preference
       });
     } catch (qErr) {
       console.warn('Could not record questionnaire to backend, continuing...', qErr);

@@ -371,16 +371,20 @@
               <span class="score-title">Q2. Kemiripan Pose</span>
             </div>
             <div class="score-card">
+              <span class="score-num">{{ questionnaireStats.stats?.avgHands || '5.0' }} / 5.0</span>
+              <span class="score-title">Q3. Konsistensi Tangan</span>
+            </div>
+            <div class="score-card">
               <span class="score-num">{{ questionnaireStats.stats?.avgKeyword || '5.0' }} / 5.0</span>
-              <span class="score-title">Q3. Kesesuaian Keyword</span>
+              <span class="score-title">Q4. Kesesuaian Keyword</span>
             </div>
             <div class="score-card">
               <span class="score-num">{{ questionnaireStats.stats?.avgMarketing || '5.0' }} / 5.0</span>
-              <span class="score-title">Q4. Keseruan Marketing</span>
+              <span class="score-title">Q5. Keseruan Marketing</span>
             </div>
             <div class="score-card score-highlight">
               <span class="score-num">{{ questionnaireStats.stats?.percentageKreatif || '100.0' }}%</span>
-              <span class="score-title">Q5. Preferensi Brosur AI</span>
+              <span class="score-title">Q6. Preferensi Brosur AI</span>
             </div>
           </div>
 
@@ -396,9 +400,10 @@
                   <th>ID Foto</th>
                   <th>Q1 Wajah</th>
                   <th>Q2 Pose</th>
-                  <th>Q3 Keyword</th>
-                  <th>Q4 Marketing</th>
-                  <th>Q5 Preferensi Brosur</th>
+                  <th>Q3 Tangan</th>
+                  <th>Q4 Keyword</th>
+                  <th>Q5 Marketing</th>
+                  <th>Q6 Preferensi Brosur</th>
                 </tr>
               </thead>
               <tbody>
@@ -407,10 +412,11 @@
                   <td class="text-sm"><code>{{ q.photoId || '-' }}</code></td>
                   <td>★ {{ q.q1_face }} / 5</td>
                   <td>★ {{ q.q2_pose }} / 5</td>
-                  <td>★ {{ q.q3_keyword }} / 5</td>
-                  <td>★ {{ q.q4_marketing }} / 5</td>
+                  <td>★ {{ q.q3_hands || q.q_hands || 5 }} / 5</td>
+                  <td>★ {{ q.q4_keyword || q.q3_keyword }} / 5</td>
+                  <td>★ {{ q.q5_marketing || q.q4_marketing }} / 5</td>
                   <td>
-                    <span v-if="q.q5_brochure_preference === 'brosur_kreatif'" class="badge badge-emerald">
+                    <span v-if="(q.q6_brochure_preference || q.q5_brochure_preference) === 'brosur_kreatif'" class="badge badge-emerald">
                       ✨ Brosur Kreatif AI Photobooth
                     </span>
                     <span v-else class="badge badge-secondary">

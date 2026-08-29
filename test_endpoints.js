@@ -45,8 +45,28 @@ async function testAll() {
   console.log('AI Gen Success:', genRes.data.success);
   console.log('Is Demo Mode:', genRes.data.isDemo);
 
+  console.log('\n--- TEST 7: Submit Questionnaire with Hands Consistency (POST /api/questionnaires) ---');
+  const qRes = await axios.post('http://localhost:3001/api/questionnaires', {
+    photoId: photoRes.data.photoId,
+    respondentName: 'Rian Pratama',
+    q1_face: 5,
+    q2_pose: 4,
+    q3_hands: 5,
+    q4_keyword: 5,
+    q5_marketing: 5,
+    q6_brochure_preference: 'brosur_kreatif'
+  });
+  console.log('Questionnaire Saved:', qRes.data.success);
+  console.log('Saved Hands Score:', qRes.data.response?.q3_hands);
+
+  console.log('\n--- TEST 8: Get Questionnaire Stats (GET /api/questionnaires) ---');
+  const qStats = await axios.get('http://localhost:3001/api/questionnaires');
+  console.log('Total responses:', qStats.data.total);
+  console.log('Avg Hands Consistency (Q3):', qStats.data.stats?.avgHands);
+  console.log('Kreatif Preference %:', qStats.data.stats?.percentageKreatif + '%');
+
   console.log('\n======================================');
-  console.log('🎉 ALL 6 BACKEND & API TESTS PASSED SUCCESSFULLY!');
+  console.log('🎉 ALL 8 BACKEND & API TESTS PASSED SUCCESSFULLY!');
   console.log('======================================');
 }
 

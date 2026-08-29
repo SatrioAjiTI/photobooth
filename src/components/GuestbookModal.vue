@@ -132,21 +132,26 @@
               <span class="q-stat-sub">Rata-rata Skor</span>
             </div>
             <div class="q-stat-card">
+              <span class="q-stat-val">{{ questionnaireData.stats?.avgHands || '5.0' }} / 5</span>
+              <span class="q-stat-title">Konsistensi Tangan (Q3)</span>
+              <span class="q-stat-sub">Rata-rata Skor</span>
+            </div>
+            <div class="q-stat-card">
               <span class="q-stat-val">{{ questionnaireData.stats?.avgKeyword || '5.0' }} / 5</span>
-              <span class="q-stat-title">Kesesuaian Keyword (Q3)</span>
+              <span class="q-stat-title">Kesesuaian Keyword (Q4)</span>
               <span class="q-stat-sub">Rata-rata Skor</span>
             </div>
             <div class="q-stat-card">
               <span class="q-stat-val">{{ questionnaireData.stats?.avgMarketing || '5.0' }} / 5</span>
-              <span class="q-stat-title">Keseruan Brosur (Q4)</span>
+              <span class="q-stat-title">Keseruan Brosur (Q5)</span>
               <span class="q-stat-sub">AI Photobooth</span>
             </div>
           </div>
 
-          <!-- Brochure Preference Highlight Box (Q5) -->
+          <!-- Brochure Preference Highlight Box (Q6) -->
           <div class="preference-box">
             <div class="pref-header">
-              <span class="pref-badge">💡 PERTANYAAN PILIHAN BROSUR (Q5)</span>
+              <span class="pref-badge">💡 PERTANYAAN PILIHAN BROSUR (Q6)</span>
               <h4>Preferensi: Brosur Kreatif Interaktif vs Brosur Fisik</h4>
             </div>
             <div class="pref-bar-wrap">
@@ -182,9 +187,10 @@
                     <th>Waktu</th>
                     <th>Wajah (Q1)</th>
                     <th>Pose (Q2)</th>
-                    <th>Keyword (Q3)</th>
-                    <th>Keseruan (Q4)</th>
-                    <th>Preferensi Brosur (Q5)</th>
+                    <th>Tangan (Q3)</th>
+                    <th>Keyword (Q4)</th>
+                    <th>Keseruan (Q5)</th>
+                    <th>Preferensi Brosur (Q6)</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -192,10 +198,11 @@
                     <td class="font-mono text-xs">{{ formatTime(r.createdAt) }}</td>
                     <td><span class="badge badge-emerald">{{ r.q1_face }} ★</span></td>
                     <td><span class="badge badge-emerald">{{ r.q2_pose }} ★</span></td>
-                    <td><span class="badge badge-emerald">{{ r.q3_keyword }} ★</span></td>
-                    <td><span class="badge badge-amber">{{ r.q4_marketing }} ★</span></td>
+                    <td><span class="badge badge-emerald">{{ r.q3_hands || r.q_hands || 5 }} ★</span></td>
+                    <td><span class="badge badge-emerald">{{ r.q4_keyword || r.q3_keyword }} ★</span></td>
+                    <td><span class="badge badge-amber">{{ r.q5_marketing || r.q4_marketing }} ★</span></td>
                     <td>
-                      <span v-if="r.q5_brochure_preference === 'brosur_kreatif'" class="badge badge-primary">✨ Brosur Kreatif</span>
+                      <span v-if="(r.q6_brochure_preference || r.q5_brochure_preference) === 'brosur_kreatif'" class="badge badge-primary">✨ Brosur Kreatif</span>
                       <span v-else class="badge badge-secondary">📄 Brosur Fisik</span>
                     </td>
                   </tr>

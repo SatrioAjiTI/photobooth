@@ -16,6 +16,26 @@
     "icon": "🍌",
     "shortName": "Nano Banana 2",
     "description": "Ultra-Fast Lightweight Multi-Modal Diffusion Model dengan latensi rendah.",
+    "count": 1,
+    "lastUsed": "2026-08-29T09:40:42.541Z"
+  },
+  "bytedance/seedream-5-pro": {
+    "id": "bytedance/seedream-5-pro",
+    "name": "ByteDance SeaDream 5.0 Pro",
+    "provider": "ByteDance",
+    "icon": "✨",
+    "shortName": "SeaDream 5.0 Pro",
+    "description": "Flagship Multi-Reference Image Model dengan resolusi ultra-tajam dan konsistensi tinggi.",
+    "count": 0,
+    "lastUsed": null
+  },
+  "google/nano-banana-2": {
+    "id": "google/nano-banana-2",
+    "name": "Google Nano Banana 2 (Standard)",
+    "provider": "Google",
+    "icon": "⚡",
+    "shortName": "Nano Banana 2 HD",
+    "description": "High-Quality Gemini Vision Image Generator dengan kontrol visual dan detail lebih kaya.",
     "count": 0,
     "lastUsed": null
   },

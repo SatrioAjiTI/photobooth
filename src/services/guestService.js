@@ -96,6 +96,7 @@ export const guestService = {
         stats: {
           avgFace: '5.0',
           avgPose: '5.0',
+          avgHands: '5.0',
           avgKeyword: '5.0',
           avgMarketing: '5.0',
           preferenceCounts: { brosur_kreatif: 0, brosur_fisik: 0 },
