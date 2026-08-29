@@ -22,7 +22,7 @@
         </span>
       </div>
       <h2 class="step-title">AI Style Studio</h2>
-      <p class="step-desc">Pilih template gaya di bawah untuk mengubah latar belakang, kostum, objek, dan nuansa visual foto Anda.</p>
+      <p class="step-desc">Pilih template gaya di bawah untuk mengubah latar belakang, kostum, objek, dan nuansa visual foto Anda</p>
     </div>
 
     <!-- Main Studio Grid -->
