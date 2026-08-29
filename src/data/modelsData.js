@@ -22,22 +22,31 @@ export const AVAILABLE_MODELS = [
     tag: 'Ultra Cepat'
   },
   {
-    id: 'stability-ai/stable-diffusion-inpainting',
-    name: 'Stability AI SD Inpainting',
-    provider: 'Stability AI',
-    icon: '🎨',
-    shortName: 'SD Inpainting',
-    description: 'Model inpainting & background replacement dengan kontrol komposisi latar kuat.',
-    tag: 'Inpainting'
+    id: 'black-forest-labs/flux-2-flex',
+    name: 'FLUX.2 Flex (Black Forest Labs)',
+    provider: 'Black Forest Labs',
+    icon: '⚡',
+    shortName: 'FLUX.2 Flex',
+    description: 'Generasi gambar tingkat lanjut dengan pemrosesan multi-modal dan kontrol input gambar presisi.',
+    tag: 'State-of-the-Art'
   },
   {
-    id: 'ideogram-ai/ideogram-v2-turbo',
-    name: 'Ideogram AI v2 Turbo',
-    provider: 'Ideogram AI',
-    icon: '⚡',
-    shortName: 'Ideogram v2 Turbo',
-    description: 'State-of-the-art visual generator dengan rendering tekstur & gaya photorealistic tinggi.',
-    tag: 'Photorealistic'
+    id: 'openai/gpt-5.6-luna',
+    name: 'OpenAI GPT-5.6 Luna Vision',
+    provider: 'OpenAI',
+    icon: '🌙',
+    shortName: 'GPT-5.6 Luna',
+    description: 'Multi-modal image-to-image neural transformation dengan pemahaman prompt bahasa alami mendalam.',
+    tag: 'Vision Multi-Modal'
+  },
+  {
+    id: 'grok-imagine-image-2',
+    name: 'xAI Grok Imagine Image 2',
+    provider: 'xAI',
+    icon: '🚀',
+    shortName: 'Grok Imagine 2',
+    description: 'Ultra-creative neural renderer dengan style transfer dan rendering visual dinamis.',
+    tag: 'Creative Styling'
   }
 ];
 
